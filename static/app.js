@@ -129,6 +129,12 @@ async function api(path, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
+    // A 404 on our own API almost always means the server is running older
+    // code than this page (it was started before an update). Say so plainly.
+    if (res.status === 404 && path.startsWith("/api/")) {
+      throw new Error("The Sentinel server is running an older version of the code. " +
+        "Stop it (Ctrl+C in its terminal), start it again, then refresh this page.");
+    }
     const data = await res.json().catch(() => ({}));
     let detail = data.detail || `Request failed (${res.status})`;
     if (Array.isArray(detail)) detail = detail.map((d) => `${d.loc.slice(1).join(".")}: ${d.msg}`).join("; ");

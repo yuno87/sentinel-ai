@@ -7,7 +7,7 @@ route just calls one pipeline function) and means there is no database.
 
 The Claude API key is only used here, on the server. The browser never sees it.
 
-Run:  uvicorn app.main:app --reload     then open http://localhost:8000
+Run:  uvicorn app.main:app --reload     then open http://127.0.0.1:8000
 API docs are generated automatically at http://localhost:8000/docs
 """
 
@@ -38,6 +38,20 @@ app = FastAPI(title="Sentinel AI", description="Prompt safety tester for chatbot
 def llm_error_handler(_request: Request, exc: LLMError):
     """Show Claude/API problems to the user as a clear message, not a crash."""
     return JSONResponse(status_code=502, content={"detail": str(exc)})
+
+
+@app.middleware("http")
+async def always_fresh_page_files(request: Request, call_next):
+    """
+    Tell the browser to check for a newer copy of the page files every time.
+
+    Without this, a browser can keep an old app.js after the code changes, and
+    the old page then calls routes that no longer match the server.
+    """
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 
 # ---------------------------------------------------------------------------

@@ -10,7 +10,7 @@ A prompt safety tester for chatbots, built as a student project. The user pastes
 ## Commands
 - Tests: `.venv/Scripts/python -m pytest -q` (offline; uses `FakeLLM` and demo mode)
 - Run with API key: `.venv/Scripts/python -m uvicorn app.main:app --reload`
-- Run without key: `.venv/Scripts/python -m uvicorn app.main:app --env-file demo.env`
+- Run without key: `.venv/Scripts/python -m uvicorn app.main:app --reload --env-file demo.env`
 - Mock live bot: `.venv/Scripts/python -m mock_bot.server` (port 8001)
 - Use `http://127.0.0.1`, not `localhost`, for local URLs on this Windows machine. `localhost` tries IPv6 first and adds about 2 seconds per request.
 

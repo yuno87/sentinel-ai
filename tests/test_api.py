@@ -114,5 +114,10 @@ def test_info_never_exposes_the_key(monkeypatch, client):
     assert "sk-ant" not in text
 
 
+def test_page_files_are_never_stale(client):
+    assert client.get("/").headers["cache-control"] == "no-cache"
+    assert client.get("/static/app.js").headers["cache-control"] == "no-cache"
+
+
 def test_empty_prompt_rejected(client):
     assert client.post("/api/analyze", json={"system_prompt": ""}).status_code == 422

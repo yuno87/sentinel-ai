@@ -77,7 +77,7 @@ The page has three tabs:
 Demo mode plays back pre-written responses for the built-in example, so you can see and present the whole app for free:
 
 ```bash
-uvicorn app.main:app --env-file demo.env
+uvicorn app.main:app --reload --env-file demo.env
 ```
 
 The page header says **Demo mode**, and exported reports are marked as demo data. Demo mode only works with the built-in example prompt.
