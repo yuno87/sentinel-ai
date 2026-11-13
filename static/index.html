@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sentinel AI</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">◆</span>
+      <div>
+        <h1>Sentinel AI</h1>
+        <p class="tagline">Find the weak spots in your chatbot before your users do</p>
+      </div>
+    </div>
+    <span id="mode-badge" class="badge"></span>
+  </header>
+
+  <!-- The three tabs. Later tabs unlock once there is something to show. -->
+  <nav class="stepper" aria-label="Steps">
+    <button class="tab active" data-tab="setup"><span class="num">1</span> Setup</button>
+    <span class="line"></span>
+    <button class="tab" data-tab="report" disabled><span class="num">2</span> Report</button>
+    <span class="line"></span>
+    <button class="tab" data-tab="fix" disabled><span class="num">3</span> Fix &amp; re-test</button>
+  </nav>
+
+  <main>
+    <div id="error" class="error" hidden></div>
+
+    <!-- ===================== TAB 1: SETUP ===================== -->
+    <section id="tab-setup">
+      <div id="baseline-note" class="note" hidden>
+        The fixed prompt is loaded below. Click <b>Scan my chatbot</b> to test it with brand-new attacks it has never seen.
+      </div>
+
+      <div class="card">
+        <h2>Paste your chatbot's system prompt</h2>
+        <p class="hint">The system prompt is the hidden set of instructions that tells a chatbot what it is for and what it must never do.
+          Don't have one? Try our made-up travel-agency bot.</p>
+        <textarea id="system-prompt" rows="11" placeholder="You are a helpful assistant for..."></textarea>
+        <div class="row"><button id="btn-example" class="secondary">Try the example bot</button></div>
+      </div>
+
+      <div class="card">
+        <h2>How should Sentinel test it?</h2>
+        <div class="choices">
+          <label class="choice">
+            <input type="radio" name="mode" value="predicted" checked>
+            <span>
+              <b>Simulate the replies</b> <span class="pill">No setup</span><br>
+              <span class="hint">Sentinel predicts how a typical chatbot with this prompt would answer each attack. Fast, but it's an estimate, not your real bot.</span>
+            </span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="mode" value="live">
+            <span>
+              <b>Connect my real chatbot</b><br>
+              <span class="hint">Sentinel sends each attack to your chatbot's web address and checks its real answers.</span>
+            </span>
+          </label>
+        </div>
+
+        <!-- Live chatbot settings (only shown when "Connect my real chatbot" is picked) -->
+        <div id="live-config" class="subpanel" hidden>
+          <label>What kind of chatbot API is it?
+            <select id="live-preset">
+              <option value="mock">Sentinel's practice bot (runs on this computer)</option>
+              <option value="simple">Simple: sends {"message"}, replies {"reply"}</option>
+              <option value="openai">Chat-completions style (messages list)</option>
+              <option value="custom">Something else (I'll fill it in)</option>
+            </select>
+          </label>
+          <p id="preset-help" class="hint"></p>
+          <label>Chatbot web address (URL) <input id="live-url" type="text" placeholder="https://my-bot.example.com/chat"></label>
+          <details class="plain">
+            <summary>Request format (advanced)</summary>
+            <label>Extra headers, as JSON <span class="hint">(for example a test login token)</span>
+              <input id="live-headers" type="text" value="{}"></label>
+              <label>Message to send, as JSON: <code>{{attack}}</code> is replaced by the attack text, <code>{{system_prompt}}</code> by your prompt
+              <input id="live-body" type="text"></label>
+            <label>Where the answer is in the response <span class="hint">(for example <code>reply</code> or <code>choices.0.message.content</code>)</span>
+              <input id="live-path" type="text"></label>
+          </details>
+          <div class="row">
+            <button id="btn-test-live" class="secondary">Test connection</button>
+            <span id="live-test-result" class="hint"></span>
+          </div>
+          <p class="hint">Only test chatbots you own or have permission to test.</p>
+        </div>
+
+        <details class="plain advanced">
+          <summary>More options</summary>
+          <label class="inline">Attacks of each type
+            <input id="per-category" type="number" min="1" max="5" value="3">
+          </label>
+          <span class="hint">There are 4 attack types, so 3 means 12 attacks in total.</span>
+          <label class="check"><input id="review-first" type="checkbox"> Let me review the attacks before they run</label>
+        </details>
+
+        <div class="cta"><button id="btn-scan" class="big">Scan my chatbot</button></div>
+      </div>
+
+      <!-- Progress checklist, shown while a scan runs -->
+      <div id="progress" class="card" hidden>
+        <h2>Scanning...</h2>
+        <ol class="checklist">
+          <li id="p-analyze"><span class="dot"></span>Reading your prompt</li>
+          <li id="p-attacks"><span class="dot"></span>Writing attacks for your bot</li>
+          <li id="p-run"><span class="dot"></span>Testing the attacks <span id="p-run-count" class="hint"></span>
+            <div class="bar"><div id="p-run-bar"></div></div></li>
+          <li id="p-report"><span class="dot"></span>Building your report</li>
+        </ol>
+      </div>
+
+      <!-- Optional review step -->
+      <div id="review" class="card" hidden>
+        <h2>Review the attacks</h2>
+        <p class="hint">These are the messages Sentinel will send. Open any one to read it.</p>
+        <div id="review-list"></div>
+        <div class="cta"><button id="btn-run-reviewed" class="big">Run these attacks</button></div>
+      </div>
+    </section>
+
+    <!-- ===================== TAB 2: REPORT ===================== -->
+    <section id="tab-report" hidden>
+      <div id="launch"></div>
+
+      <div id="predicted-note" class="note" hidden>
+        <b>These are simulated replies.</b> Sentinel predicted how a typical chatbot with this prompt would answer. They are not real results from your chatbot.
+        Pick <i>Connect my real chatbot</i> in Setup to test the real thing.
+      </div>
+
+      <div class="card">
+        <div class="row tight">
+          <h2 class="grow">Attack results</h2>
+          <button class="secondary small" id="btn-csv">Download table (CSV)</button>
+          <button class="secondary small" id="btn-md">Download report (Markdown)</button>
+        </div>
+        <div class="chips" id="filter-verdict">
+          <button class="chip active" data-value="">All</button>
+          <button class="chip" data-value="Fail">Failed</button>
+          <button class="chip" data-value="Pass">Passed</button>
+          <button class="chip" data-value="Error" id="chip-error" hidden>Errors</button>
+        </div>
+        <div class="chips" id="filter-category"></div>
+        <div class="table-wrap"><table id="results-table"></table></div>
+        <p class="hint">Click any row to see the attack message and the reply.</p>
+      </div>
+
+      <details class="card plain" id="analysis-box">
+        <summary><b>What Sentinel learned about your bot</b> <span class="hint">(purpose, rules, weak spots)</span></summary>
+        <div id="analysis"></div>
+      </details>
+
+      <div class="cta"><button id="btn-go-fix" class="big">Next: fix these problems →</button></div>
+    </section>
+
+    <!-- ===================== TAB 3: FIX & RE-TEST ===================== -->
+    <section id="tab-fix" hidden>
+      <div class="card">
+        <h2>Fix the problems</h2>
+        <p class="hint">Sentinel suggests fixes and rewrites your prompt to be harder to attack. Some problems can't be fixed by wording alone,
+          so a few fixes are changes to your app's code.</p>
+        <div class="row"><button id="btn-harden">Suggest fixes</button></div>
+        <div id="hardening"></div>
+      </div>
+
+      <div class="card" id="retest-card" hidden>
+        <h2>Did the fixes work?</h2>
+        <p class="hint">Run the same attacks again against the fixed prompt and compare.</p>
+        <div class="row">
+          <button id="btn-retest">Re-test with the fixed prompt</button>
+        </div>
+        <div id="retest-progress" class="hint" hidden>
+          Testing <span id="r-count"></span>
+          <div class="bar"><div id="r-bar"></div></div>
+        </div>
+        <div id="retest"></div>
+      </div>
+
+      <div class="card" id="baseline-card" hidden>
+        <h2>Test the fixed prompt with new attacks</h2>
+        <p class="hint">The fixes were written after seeing these exact attacks, so passing them again is the easy part.
+          For a fair test, start a fresh scan of the fixed prompt; Sentinel will write new attacks it hasn't seen.</p>
+        <div class="row"><button id="btn-baseline" class="secondary">Start a fresh scan of the fixed prompt</button></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="busy" class="busy" hidden><div class="spinner"></div><span id="busy-text">Working...</span></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
