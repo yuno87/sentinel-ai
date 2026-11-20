@@ -140,3 +140,13 @@ def test_no_api_key_means_demo_mode(monkeypatch):
     finally:
         monkeypatch.undo()
         importlib.reload(cfg)
+
+
+def test_vercel_entry_point_loads_the_app():
+    """index.py at the repo root is what Vercel runs; it must expose the same FastAPI app."""
+    import runpy
+    from pathlib import Path
+
+    from app.main import app as real_app
+    entry = runpy.run_path(str(Path(__file__).resolve().parents[2] / "index.py"))
+    assert entry["app"] is real_app

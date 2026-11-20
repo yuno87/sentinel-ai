@@ -187,6 +187,16 @@ Design choices:
 
 ---
 
+## Deployment (prototype link)
+
+The prototype is hosted on **Vercel** (free Hobby plan), deployed straight from this GitHub repository:
+
+- `index.py` (repo root) is Vercel's entry point; it loads the app from `code/`.
+- `requirements.txt` (repo root) lists the runtime packages; `vercel.json` allows up to 300 s per request.
+- The AI key is set in Vercel under **Settings → Environment Variables** as `GEMINI_API_KEY`, never in the repository.
+
+A `Dockerfile` is also included to run the app in any container host: `docker build -t sentinel-ai .` then `docker run -p 7860:7860 -e GEMINI_API_KEY=... sentinel-ai`.
+
 ## Code structure
 
 ```

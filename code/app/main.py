@@ -102,7 +102,7 @@ class CsvIn(BaseModel):
 @app.get("/api/info")
 def info():
     """Tells the page which mode the server is in (never the key itself)."""
-    return {"demo": config.DEMO_MODE, "model": config.MODEL, "has_api_key": bool(config.ANTHROPIC_API_KEY),
+    return {"demo": config.DEMO_MODE, "model": config.MODEL, "has_api_key": not config.DEMO_MODE,
             "default_per_category": config.DEFAULT_ATTACKS_PER_CATEGORY,
             "max_per_category": config.MAX_ATTACKS_PER_CATEGORY}
 

@@ -10,4 +10,3 @@
 | Re-test comparison | Runs the same attacks on the hardened prompt; shows fixed / still failing / new failures | Working | Tested in T07 |
 | Markdown and CSV export | Downloads the full report and the results table | Working | Every test saved a Markdown report (`test-data/outputs/Txx_report.md`) |
 | Demo mode | Runs the full flow with no API key, using pre-written answers for the example bot, clearly labelled | Working | Only works with the built-in example prompt |
-| Multi-turn attacks | Attacks spread over several messages | Not started | Planned for Milestone 3 |

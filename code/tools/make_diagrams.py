@@ -188,7 +188,7 @@ def system_architecture():
     s.box(330, 298, 125, 52, ["demo.py", "no key: demo"], "code")
     s.box(465, 298, 125, 52, ["live_client.py", "HTTP to chatbot"], "code")
     s.text(460, 380, "API key read from .env (server only)", size=11.5)
-    s.text(460, 396, "Hosted on Hugging Face Spaces (Docker)", size=11.5)
+    s.text(460, 396, "Hosted on Vercel (index.py entry point)", size=11.5)
 
     s.arrow(250, 130, 330, 130)
     s.arrow(330, 146, 250, 146)

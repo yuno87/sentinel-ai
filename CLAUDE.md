@@ -27,6 +27,10 @@ SCSE4041 Prompt Engineering mini project, team Sentinel AI (Team ID PE-B49-24, p
 - Demo mode turns on automatically when no API key is set (or `SENTINEL_DEMO=1`). `SENTINEL_DEMO_DELAY` (default 0.4 s) slows demo answers so the progress checklist is visible; `tests/conftest.py` sets it to 0. `tools/run_tests.py` and `tools/prompt_experiment.py` require a real key and must never report demo answers as results.
 - Model: `claude-opus-5-5` (env `SENTINEL_MODEL`). Opus 5.5 can't disable thinking or use forced tool_choice, and does not support prefill.
 
+## Deployment
+- Prototype is hosted on Vercel from GitHub: root `index.py` adds `code/` to `sys.path` and re-exports `app`; root `requirements.txt` holds runtime deps (keep in sync with `code/requirements.txt`); `vercel.json` sets maxDuration 300. Key is a Vercel env var. Hugging Face Spaces was dropped (compute Spaces need a paid plan).
+- AI provider: Claude if ANTHROPIC_API_KEY, else Gemini (`gemini-3.5-flash-lite`) if GEMINI_API_KEY, else demo mode.
+
 ## Rules to keep
 - The API key stays server-side. `/api/info` must never return it (there is a test for this).
 - Predicted replies must always be labelled as predictions (UI badge + note, `reply.mode`, report banner).

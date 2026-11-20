@@ -1,1 +1,0 @@
-deploy/huggingface/README.md is the Space's README (Hugging Face needs this header). It replaces README.md only in the Space, not on GitHub.

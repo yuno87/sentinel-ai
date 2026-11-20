@@ -2,6 +2,13 @@
 
 Dated changes since Milestone 1. Commit history on GitHub shows the same work.
 
+## 2026-11-21: Real runs, fixes and deployment
+- Ran the prompt experiment (v1 to v4) and the 15 test inputs on Gemini 3.5 Flash-Lite; all raw outputs saved in `test-data/outputs/`.
+- Prompt v4: rewrote P3 (predict reply) after v3 judged only 2 % of attacks as Fail; v4 judged 31 %, ranked by how weak each bot is.
+- Fixed a bug found by test T07: the schema conversion dropped a field named "title", so the hardening step failed. Added a regression test.
+- Deployment moved from Hugging Face Spaces (needs a paid plan for apps that run code) to Vercel: `index.py`, root `requirements.txt`, `vercel.json`.
+- Added the four diagrams, real sample runs for the prompt sheets, the technical report and the Milestone 2 PDF builder.
+
 ## 2026-11-20: Gemini support (free key)
 - Added a Gemini client (`google-genai` SDK, model `gemini-3.5-flash-lite`) next to the Claude one. The app picks the AI from whichever key is set: Claude, then Gemini, else demo mode.
 - Gemini uses structured JSON output (`response_json_schema`) and waits and retries automatically when the free per-minute limit is hit.

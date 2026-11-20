@@ -8,7 +8,7 @@ Sentinel AI tests a chatbot's system prompt for security weaknesses before launc
 
 ## Architecture
 
-A Python **FastAPI** server and a plain **HTML/JavaScript** page (three tabs: Setup, Report, Fix & re-test). The server is stateless: the page holds the current results and sends each step what it needs. All AI calls go through one module (`llm.py`), which supports **Gemini** (free key) and **Claude**, chosen by which API key is set; with no key, a labelled demo mode plays back pre-written answers. Keys stay on the server and are never sent to the browser. The app is packaged with Docker and hosted on Hugging Face Spaces.
+A Python **FastAPI** server and a plain **HTML/JavaScript** page (three tabs: Setup, Report, Fix & re-test). The server is stateless: the page holds the current results and sends each step what it needs. All AI calls go through one module (`llm.py`), which supports **Gemini** (free key) and **Claude**, chosen by which API key is set; with no key, a labelled demo mode plays back pre-written answers. Keys stay on the server and are never sent to the browser. The prototype is hosted on Vercel (free plan) from the GitHub repository; a Dockerfile is also included.
 
 ## Tools and models
 
