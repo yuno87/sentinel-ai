@@ -23,12 +23,16 @@ ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "").strip()
 # One model for every step. Opus 5.5 is the current default Claude model.
 MODEL: str = os.getenv("SENTINEL_MODEL", "claude-opus-5-5").strip()
 
-# Demo mode plays back canned responses for the built-in example bot, so the
-# app can be shown without an API key. Nothing in demo mode calls Claude.
-DEMO_MODE: bool = os.getenv("SENTINEL_DEMO", "0").strip() in ("1", "true", "yes")
+# Demo mode plays back pre-written answers for the built-in example bot, so the
+# app works without an API key. Nothing in demo mode calls Claude.
+# It turns on automatically when no API key is set, or when SENTINEL_DEMO=1.
+DEMO_MODE: bool = (
+    os.getenv("SENTINEL_DEMO", "0").strip() in ("1", "true", "yes")
+    or not ANTHROPIC_API_KEY
+)
 
-# Seconds each demo answer waits, so the progress bar is visible when presenting.
-DEMO_DELAY_SECONDS: float = float(os.getenv("SENTINEL_DEMO_DELAY", "0") or 0)
+# Seconds each demo answer waits, so the progress checklist is visible.
+DEMO_DELAY_SECONDS: float = float(os.getenv("SENTINEL_DEMO_DELAY", "0.4") or 0)
 
 # How many attacks to generate per category (the UI can override this).
 DEFAULT_ATTACKS_PER_CATEGORY: int = 3

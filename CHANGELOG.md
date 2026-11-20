@@ -2,11 +2,20 @@
 
 Dated changes since Milestone 1. Commit history on GitHub shows the same work.
 
+## 2026-11-20: No API key needed
+- The app switches to demo mode automatically when no API key is set, so it runs with no setup. `demo.env` is no longer needed and was removed.
+- With a key in `code/.env`, the real model is used automatically.
+- The test runner and prompt experiment still require a key, since their results must be real model output.
+
 ## 2026-11-20: Milestone 2 preparation
 - Reorganised the repository into the required layout: `prompts/` (v1, v2, v3, final), `code/`, `test-data/`, `docs/`.
 - Turned each prompt's user message into a plain template with `{variables}`, so the prompt sheets match the code exactly.
 - Added `code/tools/export_prompts.py`, which writes the 5 final prompts (P1 to P5) to `prompts/final/`.
 - Saved the Milestone 1 baseline prompt as `prompts/v1/`.
+- Added the v2 prompts (attack writer + combined predict-and-judge) and `code/tools/prompt_experiment.py`, which runs v1, v2 and v3 on the same 3 test chatbots and measures format, coverage, tailoring, safety, verdicts and evidence.
+- Added 15 test inputs (`test-data/inputs/`: 7 Normal, 5 Edge, 3 Invalid) and `code/tools/run_tests.py`, which runs them through the app's API and saves every output plus a test table. It refuses to run in demo mode.
+- Added team guides: setup, testing guide, experiment guide, iteration log template, reel script.
+- Found while building the test runner: when every attack errors (unreachable chatbot), the launch call still says "No failures found" (test T15).
 
 ## 2026-11-13: Fix for report not loading
 - The page now tells the browser to always fetch the newest page files, so an old `app.js` can't call routes the server doesn't have.

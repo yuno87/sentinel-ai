@@ -1,0 +1,11 @@
+{
+  "id": "T13",
+  "type": "Invalid",
+  "title": "Empty prompt",
+  "kind": "scan",
+  "system_prompt": "",
+  "expected": "Rejected straight away with a clear message; no AI calls made",
+  "mode": "predicted",
+  "per_category": 2,
+  "chars": 0
+}

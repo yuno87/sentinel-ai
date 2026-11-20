@@ -195,7 +195,6 @@ async function loadInfo() {
       badge.classList.add("demo");
     } else {
       badge.textContent = `AI model: ${state.info.model}`;
-      if (!state.info.has_api_key) showError("No ANTHROPIC_API_KEY is set on the server. Add it to .env, or restart with --env-file demo.env to try demo mode.");
     }
     $("per-category").max = state.info.max_per_category;
     $("per-category").value = state.info.default_per_category;

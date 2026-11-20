@@ -96,7 +96,7 @@ def test_live_connection_check_reports_errors(client):
 def test_demo_mode_rejects_other_prompts(client):
     r = client.post("/api/analyze", json={"system_prompt": "You are a pirate bot."})
     assert r.status_code == 502
-    assert "Demo mode" in r.json()["detail"]
+    assert "demo mode" in r.json()["detail"]
 
 
 def test_missing_key_gives_clear_error(monkeypatch):
@@ -121,3 +121,21 @@ def test_page_files_are_never_stale(client):
 
 def test_empty_prompt_rejected(client):
     assert client.post("/api/analyze", json={"system_prompt": ""}).status_code == 422
+
+
+def test_no_api_key_means_demo_mode(monkeypatch):
+    """Without a key the app needs no setup: it switches to demo mode by itself."""
+    import importlib
+
+    from app import config as cfg
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    monkeypatch.delenv("SENTINEL_DEMO", raising=False)
+    try:
+        importlib.reload(cfg)
+        assert cfg.DEMO_MODE is True
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-not-real")
+        importlib.reload(cfg)
+        assert cfg.DEMO_MODE is False
+    finally:
+        monkeypatch.undo()
+        importlib.reload(cfg)

@@ -91,50 +91,55 @@ class ClaudeClient:
     def __init__(self, model: str = config.MODEL):
         if not config.ANTHROPIC_API_KEY:
             raise LLMError(
-                "ANTHROPIC_API_KEY is not set. Add it to your .env file, "
-                "or start the app with SENTINEL_DEMO=1 to use demo mode."
+                "This needs real model answers, so it needs ANTHROPIC_API_KEY in code/.env. "
+                "Without a key, only the app's demo mode is available."
             )
         self.model = model
         # The SDK retries rate limits and server errors twice by default.
         self.client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
 
+    def _create(self, task: str, system: str, user: str, output_config: dict):
+        """Send one request, turning API errors into readable LLMErrors."""
+        try:
+            response = self.client.beta.messages.create(
+                model=self.model,
+                max_tokens=16000,
+                system=system,
+                messages=[{"role": "user", "content": user}],
+                output_config=output_config,
+                # If a safety classifier declines (attack text can look
+                # suspicious), the API retries on a fallback model for us.
+                betas=["server-side-fallback-2026-07-01"],
+                fallbacks="default",
+            )
+        except anthropic.AuthenticationError as exc:
+            raise LLMError("The API key was rejected. Check ANTHROPIC_API_KEY.") from exc
+        except anthropic.RateLimitError as exc:
+            raise LLMError("Rate limited by the API. Wait a minute and try again.") from exc
+        except anthropic.APIStatusError as exc:
+            raise LLMError(f"Claude API error {exc.status_code}: {exc.message}") from exc
+        except anthropic.APIConnectionError as exc:
+            raise LLMError("Could not reach the Claude API. Check your internet connection.") from exc
+
+        # Always check why the model stopped before reading the content.
+        if response.stop_reason == "refusal":
+            raise LLMError(f"Claude declined the '{task}' step.")
+        return response
+
     def structured(self, task: str, system: str, user: str, output_model: type[T]) -> T:
         schema = to_strict_schema(output_model)
+        output_config = {
+            "effort": EFFORT_BY_TASK.get(task, "medium"),
+            "format": {"type": "json_schema", "schema": schema},
+        }
 
         # We try twice: if the first answer fails validation, we ask again once.
         last_problem = ""
         for _attempt in range(2):
-            try:
-                response = self.client.beta.messages.create(
-                    model=self.model,
-                    max_tokens=16000,
-                    system=system,
-                    messages=[{"role": "user", "content": user}],
-                    output_config={
-                        "effort": EFFORT_BY_TASK.get(task, "medium"),
-                        "format": {"type": "json_schema", "schema": schema},
-                    },
-                    # If a safety classifier declines (attack text can look
-                    # suspicious), the API retries on a fallback model for us.
-                    betas=["server-side-fallback-2026-07-01"],
-                    fallbacks="default",
-                )
-            except anthropic.AuthenticationError as exc:
-                raise LLMError("The API key was rejected. Check ANTHROPIC_API_KEY.") from exc
-            except anthropic.RateLimitError as exc:
-                raise LLMError("Rate limited by the API. Wait a minute and try again.") from exc
-            except anthropic.APIStatusError as exc:
-                raise LLMError(f"Claude API error {exc.status_code}: {exc.message}") from exc
-            except anthropic.APIConnectionError as exc:
-                raise LLMError("Could not reach the Claude API. Check your internet connection.") from exc
-
-            # Always check why the model stopped before reading the content.
-            if response.stop_reason == "refusal":
-                raise LLMError(f"Claude declined the '{task}' step.")
+            response = self._create(task, system, user, output_config)
             if response.stop_reason == "max_tokens":
                 last_problem = "the answer was cut off (max_tokens)"
                 continue
-
             text = "".join(block.text for block in response.content if block.type == "text")
             try:
                 return output_model.model_validate_json(text)
@@ -142,6 +147,17 @@ class ClaudeClient:
                 last_problem = f"the JSON did not match the schema: {exc.errors()[:2]}"
 
         raise LLMError(f"Claude's answer for the '{task}' step was unusable: {last_problem}")
+
+    def text(self, task: str, system: str, user: str) -> str:
+        """
+        Plain-text answer, with no output schema and no retry.
+
+        The app itself never uses this. It exists so the prompt experiment
+        (tools/prompt_experiment.py) can run the older v1 and v2 prompts
+        exactly as they were written: they asked for text, not a schema.
+        """
+        response = self._create(task, system, user, {"effort": "medium"})
+        return "".join(block.text for block in response.content if block.type == "text")
 
 
 # ---------------------------------------------------------------------------
@@ -167,6 +183,10 @@ class FakeLLM:
             result = result.model_dump()
         # Validate exactly like the real client does.
         return output_model.model_validate_json(json.dumps(result))
+
+    def text(self, task: str, system: str, user: str) -> str:
+        self.calls.append({"task": task, "system": system, "user": user})
+        return self.handlers[task](system, user)
 
 
 def get_llm() -> LLMClient:

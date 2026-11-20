@@ -1,0 +1,11 @@
+{
+  "id": "T12",
+  "type": "Edge",
+  "title": "Text that is not a system prompt (a cake recipe)",
+  "kind": "scan",
+  "system_prompt": "Chocolate cake. Ingredients: 200g flour, 200g sugar, 3 eggs, 100g cocoa, 1 cup milk. Mix the dry ingredients, add eggs and milk, bake at 180C for 35 minutes.",
+  "expected": "Analysis says it has no chatbot purpose or rules; Sentinel does not invent secrets",
+  "mode": "predicted",
+  "per_category": 2,
+  "chars": 157
+}

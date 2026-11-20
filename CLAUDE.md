@@ -12,8 +12,7 @@ SCSE4041 Prompt Engineering mini project, team Sentinel AI (Team ID PE-B49-24, p
 
 ## Commands (run from `code/`)
 - Tests: `../.venv/Scripts/python -m pytest -q` (offline; uses `FakeLLM` and demo mode)
-- Run with API key: `../.venv/Scripts/python -m uvicorn app.main:app --reload`
-- Run without key: `../.venv/Scripts/python -m uvicorn app.main:app --reload --env-file demo.env`
+- Run the app: `../.venv/Scripts/python -m uvicorn app.main:app --reload` (demo mode automatically when no key is set; real model when `code/.env` has `ANTHROPIC_API_KEY`)
 - Mock live bot: `../.venv/Scripts/python -m mock_bot.server` (port 8001)
 - Regenerate `prompts/final/` after changing a prompt: `../.venv/Scripts/python -m tools.export_prompts`
 - Use `http://127.0.0.1`, not `localhost`, for local URLs on this Windows machine. `localhost` tries IPv6 first and adds about 2 seconds per request.
@@ -25,7 +24,7 @@ SCSE4041 Prompt Engineering mini project, team Sentinel AI (Team ID PE-B49-24, p
 - `app/main.py`: thin, stateless routes. The browser holds state and posts what each step needs.
 - Page flow (`static/app.js`): three tabs (Setup, Report, Fix & re-test). "Scan my chatbot" calls `/api/analyze` and `/api/attacks`, then `/api/run` once per attack (3 in parallel, so it can show progress), then `/api/summary`. Re-test runs the same way, then `/api/compare`. `/api/live/test` backs the "Test connection" button. `/api/retest` still exists for API users but the page doesn't use it.
 - UI wording is plain English (category names like "Hidden instructions", ⓘ tooltips). Exports keep the standard security terms (`CATEGORY_LABEL` in `schemas.py`).
-- `SENTINEL_DEMO_DELAY` (set in `demo.env`) slows demo answers so the progress checklist is visible. Keep it 0 in tests.
+- Demo mode turns on automatically when no API key is set (or `SENTINEL_DEMO=1`). `SENTINEL_DEMO_DELAY` (default 0.4 s) slows demo answers so the progress checklist is visible; `tests/conftest.py` sets it to 0. `tools/run_tests.py` and `tools/prompt_experiment.py` require a real key and must never report demo answers as results.
 - Model: `claude-opus-5-5` (env `SENTINEL_MODEL`). Opus 5.5 can't disable thinking or use forced tool_choice, and does not support prefill.
 
 ## Rules to keep

@@ -1,9 +1,8 @@
 """
 Demo mode: canned responses for the built-in Copperleaf example.
 
-Turn it on with SENTINEL_DEMO=1. Nothing here calls Claude. It exists so the
-app can be run and presented without an API key. Every result is clearly
-labelled as demo data in the UI.
+Demo mode is on automatically when no API key is set (or with SENTINEL_DEMO=1).
+Nothing here calls Claude. Every result is clearly labelled as demo data in the UI.
 
 DemoLLM has the same `structured(...)` method as the real client, so the whole
 pipeline (ID assignment, judging checks, launch call, diff, comparison) runs
@@ -221,7 +220,8 @@ class DemoLLM:
         if task in ("analyze", "attacks"):
             known = EXAMPLE_SYSTEM_PROMPT.strip() in user or HARDENED_MARKER in user
             if not known:
-                raise LLMError("Demo mode only works with the built-in example prompt. Add an API key to test your own.")
+                raise LLMError("This version runs in demo mode, which only works with the built-in example. "
+                               "Click \"Try the example bot\" to see a full scan.")
             if task == "analyze":
                 return DEMO_ANALYSIS
             return {"attacks": [a["draft"] for a in DEMO_ATTACKS]}

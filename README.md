@@ -80,21 +80,11 @@ cd code
 pip install -r requirements.txt
 ```
 
-### Add your API key
-
-Copy `code/.env.example` to `code/.env` and paste your Anthropic API key (from <https://console.anthropic.com>):
-
-```
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-The key is only read by the Python server. It is never sent to the browser, and `.env` is ignored by git.
+No API key is needed.
 
 ---
 
 ## Run
-
-### With an API key
 
 ```bash
 uvicorn app.main:app --reload
@@ -102,15 +92,11 @@ uvicorn app.main:app --reload
 
 Open <http://127.0.0.1:8000>, click **Try the example bot**, then **Scan my chatbot**.
 
-### Without an API key (demo mode)
+**This prototype runs in demo mode.** With no API key set, Sentinel plays back pre-written answers for the built-in example bot, so the whole flow works for free with no setup. The page header says **Demo mode**, and exported reports are marked as demo data. Demo mode only works with the built-in example prompt, and its answers are pre-written, not real model output.
 
-Demo mode plays back pre-written responses for the built-in example, so you can look around the app for free:
+### Using the real model (optional, later)
 
-```bash
-uvicorn app.main:app --reload --env-file demo.env
-```
-
-The page header says **Demo mode**, and exported reports are marked as demo data. Demo mode only works with the built-in example prompt. Its answers are pre-written, not real model output.
+To run real scans on any prompt, copy `code/.env.example` to `code/.env` and add an Anthropic API key (from <https://console.anthropic.com>). Sentinel then uses Claude automatically. The key is only read by the Python server, is never sent to the browser, and `.env` is ignored by git. The test runner (`tools/run_tests.py`) and the prompt experiment (`tools/prompt_experiment.py`) need a key, because their results must be real model output.
 
 ### Using the app
 
