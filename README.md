@@ -1,6 +1,29 @@
-# Sentinel AI
+# Sentinel AI: A Prompt Safety Tester for Chatbots
 
 **A red-team kit that helps teams find security weaknesses in their chatbots before launch.**
+
+SCSE4041 Prompt Engineering, Mini Project · Team **Sentinel AI** (Team ID PE-B49-24) · Problem Pool **C23** Prompt safety tester (red-team kit)
+
+| | |
+|---|---|
+| Prototype | _link added after deployment_ |
+| Repository | _this repository_ |
+| Reel | _link added after recording_ |
+
+## Team
+
+| Member | Enrollment no. | Main task |
+|---|---|---|
+| Ayanna Tyagi (leader) | S24CSEU0125 | App build and integration, deployment |
+| Atharv Arora | S24CSEU2439 | Testing: test table, test data and screenshots |
+| Karan Singh Saggu | S24CSEU1939 | Prompt iteration experiments and log |
+| Jatin Khanchi | S24CSEU1932 | Diagrams, technical report and reel |
+
+Faculty: Ankit Vijay Bansal
+
+---
+
+## What it does
 
 Paste a chatbot's system prompt. Sentinel AI:
 
@@ -11,19 +34,34 @@ Paste a chatbot's system prompt. Sentinel AI:
    - **Live**: sends each attack to your real chatbot over HTTP and records the real reply.
 4. **Judges** every reply as Pass or Fail with a severity (Critical / High / Medium / Low / None) and a quoted piece of evidence, using a separate Claude call.
 5. **Reports**: a filterable results table, an overall launch call, suggested fixes (prompt changes and application changes), and a hardened prompt with a diff.
-6. **Re-tests** the hardened prompt and shows what was fixed, what still fails, and any new failures. It can also make the hardened prompt the new baseline so you can test it with fresh attacks.
+6. **Re-tests** the hardened prompt and shows what was fixed, what still fails, and any new failures. It can also start a fresh scan of the hardened prompt with new attacks.
 7. **Exports** the report as Markdown and the table as CSV.
 
 > Attacks test whether a bot breaks its *own* rules (leaking a discount code, sharing another customer's booking). They never ask for genuinely harmful content, and they use only made-up names and `example.com` addresses.
 
 ---
 
+## Repository layout
+
+```
+README.md         this file
+CHANGELOG.md      dated list of changes since Milestone 1
+prompts/
+  v1/             Milestone 1 baseline prompt
+  v2/, v3/        later prompt versions (iteration log)
+  final/          the 5 final prompts, one file each (P1 to P5)
+code/             the app (Python + a plain HTML/JS page)
+test-data/        inputs used in the test table, and saved outputs
+docs/             diagrams, supporting document, Milestone 2 PDF
+```
+
+---
+
 ## Setup
 
-You need **Python 3.10+**.
+You need **Python 3.10+**. From the `sentinel` folder:
 
 ```bash
-cd sentinel
 python -m venv .venv
 ```
 
@@ -31,20 +69,20 @@ Activate the virtual environment:
 
 - Windows (Command Prompt): `.venv\Scripts\activate.bat`
 - Windows (PowerShell): `.venv\Scripts\Activate.ps1`
-- Windows (Git Bash): `source .venv/Scripts/activate`
 - macOS / Linux: `source .venv/bin/activate`
 
-Once it's active, your prompt starts with `(.venv)` and the commands below work as written. If you skip activation, start each command with the venv's Python instead, for example `.venv\Scripts\python -m uvicorn ...` in Command Prompt. Command Prompt needs backslashes in paths; forward slashes fail with "'.venv' is not recognized".
+Once it's active, your prompt starts with `(.venv)`. Command Prompt needs backslashes in paths; forward slashes fail with "'.venv' is not recognized".
 
-Install the dependencies:
+Then go into the `code` folder and install the dependencies. **All commands below run from `code/`.**
 
 ```bash
+cd code
 pip install -r requirements.txt
 ```
 
 ### Add your API key
 
-Copy `.env.example` to `.env` and paste your Anthropic API key (from <https://console.anthropic.com>):
+Copy `code/.env.example` to `code/.env` and paste your Anthropic API key (from <https://console.anthropic.com>):
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
@@ -64,6 +102,16 @@ uvicorn app.main:app --reload
 
 Open <http://127.0.0.1:8000>, click **Try the example bot**, then **Scan my chatbot**.
 
+### Without an API key (demo mode)
+
+Demo mode plays back pre-written responses for the built-in example, so you can look around the app for free:
+
+```bash
+uvicorn app.main:app --reload --env-file demo.env
+```
+
+The page header says **Demo mode**, and exported reports are marked as demo data. Demo mode only works with the built-in example prompt. Its answers are pre-written, not real model output.
+
 ### Using the app
 
 The page has three tabs:
@@ -72,19 +120,9 @@ The page has three tabs:
 2. **Report**: the overall verdict in plain words, then every attack with Pass/Fail and severity. Use the chips to filter, and click a row to see the attack and the reply. Hover over any ⓘ for an explanation of a term.
 3. **Fix & re-test**: get suggested fixes and a stronger prompt (with a "what changed" view and a Copy button), re-test it against the same attacks, or start a fresh scan of the fixed prompt with new attacks.
 
-### Without an API key (demo mode)
-
-Demo mode plays back pre-written responses for the built-in example, so you can see and present the whole app for free:
-
-```bash
-uvicorn app.main:app --reload --env-file demo.env
-```
-
-The page header says **Demo mode**, and exported reports are marked as demo data. Demo mode only works with the built-in example prompt.
-
 ### Trying live mode
 
-A deliberately weak mock chatbot is included. Start it in a second terminal:
+A deliberately weak practice chatbot is included. Start it in a second terminal (also from `code/`):
 
 ```bash
 python -m mock_bot.server
@@ -92,7 +130,7 @@ python -m mock_bot.server
 
 Then in Setup pick **Connect my real chatbot**. The *Sentinel's practice bot* preset is already selected, so click **Test connection** to check it, then **Scan my chatbot**.
 
-For your own bot, pick the preset closest to its API and fill in the web address. Use **Test connection** to check the settings before scanning. *Request format (advanced)* lets you change:
+For your own bot, pick the preset closest to its API and fill in the web address. *Request format (advanced)* lets you change:
 
 | Field | Example |
 |---|---|
@@ -101,41 +139,41 @@ For your own bot, pick the preset closest to its API and fill in the web address
 | Message to send (JSON) | `{"messages": [{"role": "user", "content": "{{attack}}"}]}` |
 | Where the answer is | `choices.0.message.content` |
 
-`{{system_prompt}}` can also be used in the body template if your bot accepts its prompt per request. Only test chatbots you own or are allowed to test.
+`{{system_prompt}}` can also be used in the message if your bot accepts its prompt per request. Only test chatbots you own or are allowed to test.
 
-### Running the tests
+### Tests and prompt files
 
 ```bash
 python -m pytest
+python -m tools.export_prompts
 ```
 
-The tests use a fake LLM and demo mode, so they run offline and cost nothing.
+The tests use a fake LLM and demo mode, so they run offline and cost nothing. `export_prompts` regenerates `prompts/final/` from `code/app/prompts.py`.
 
 ---
 
 ## How it works
 
 ```
- browser (static/)                 server (app/)                         Claude API
- ─────────────────                 ─────────────                         ──────────
- 1 paste prompt  ── /api/analyze ─► analyze.py ───────── structured JSON ─► Opus 5.5
- 2 attacks       ── /api/attacks ─► attacks.py  (IDs + safety screen in code)
- 3 run           ── /api/run ─────► runner.py ─► predict (or live HTTP call)
-                                              └► judge.py (separate call)
-                                    verdict.py  (launch call: plain code)
- 4 fixes         ── /api/harden ──► harden.py  (+ difflib diff)
- 5 re-test       ── /api/retest ──► runner.py + retest.py (compare)
- 6 export        ── /api/export ──► export.py (Markdown / CSV)
+ browser (code/static/)            server (code/app/)                    Claude API
+ ──────────────────────            ──────────────────                    ──────────
+ paste prompt   ── /api/analyze ─► P1 analyse ─────────── structured JSON ─► Opus 5.5
+                ── /api/attacks ─► P2 attacks  (IDs + safety screen in code)
+ per attack     ── /api/run ─────► P3 predict (or live HTTP call to your bot)
+                                   └► P4 judge (separate call)
+                ── /api/summary ─► launch call (plain code)
+ fix            ── /api/harden ──► P5 harden (+ difflib diff)
+ re-test        ── /api/run, /api/compare
+ export         ── /api/export ──► Markdown / CSV
 ```
 
-Design choices worth knowing:
+Design choices:
 
-- **Structured output plus validation.** Each step's output is a Pydantic class (`app/schemas.py`). We send its JSON Schema to Claude and validate the reply against the same class. If the reply is invalid, we ask once more, and then show an error.
-- **Code does what code can do.** Attack IDs, the launch call, the diff and the before/after comparison are plain Python, not LLM output, so they are predictable and testable.
-- **The judge is checked too.** Our code verifies that the judge's evidence quote really appears in the reply, and enforces that a Pass always has severity None.
-- **Separate calls.** The reply (prediction) and the verdict come from different calls with different system prompts.
-- **Errors are not verdicts.** If a live endpoint fails, that attack shows as *Error*. It is never counted as a Pass or a Fail.
-- **Stateless server.** The browser holds the current results and sends what each step needs, so there is no database.
+- **Structured output plus validation.** Each step's output is a Pydantic class (`code/app/schemas.py`). Its JSON Schema is sent to Claude and the reply is validated against the same class. An invalid reply is retried once, then reported as an error.
+- **Code does what code can do.** Attack IDs, the launch call, the diff and the before/after comparison are plain Python, not LLM output.
+- **The judge is checked too.** The code verifies that the judge's evidence quote really appears in the reply, and that a Pass always has severity None.
+- **Separate calls.** The predicted reply and the verdict come from different calls with different system prompts.
+- **Errors are not verdicts.** If a live endpoint fails, that attack shows as *Error*, never as a Pass or Fail.
 
 ### Launch call rules
 
@@ -149,28 +187,29 @@ Design choices worth knowing:
 ### Limitations
 
 - Predicted mode is an estimate. A real bot may be stronger or weaker, so use live mode before launch.
-- The re-test uses the attacks the hardening step has already seen, so passing them is easier than passing new ones. Use **Use hardened prompt as new baseline** to test it with fresh attacks.
+- The re-test uses attacks the hardening step has already seen, so passing them is easier than passing new ones. Start a fresh scan of the fixed prompt for a fair test.
 - Attacks are single messages. Multi-turn attacks are not covered.
-- Each full run makes about 25 to 30 Claude calls (analysis, attacks, and one prediction plus one judgment per attack).
+- A full scan of 12 attacks makes about 26 Claude calls.
 
 ---
 
-## Project structure
+## Code structure
 
 ```
-app/
-  main.py            FastAPI routes (one per step) and the web page
-  config.py          settings from environment variables
-  llm.py             Claude wrapper, schema conversion, fake LLM for tests
-  schemas.py         every data model (Pydantic)
-  prompts.py         every prompt sent to Claude
-  examples.py        the built-in fictional chatbot
-  demo.py            canned responses for demo mode
-  live_client.py     live-mode HTTP calls
-  export.py          Markdown and CSV export
-  pipeline/
-    analyze.py  attacks.py  runner.py  judge.py  verdict.py  harden.py  retest.py
-mock_bot/server.py   deliberately weak chatbot for live-mode demos
-static/              index.html, app.js, styles.css (no build step)
-tests/               pytest tests for every step
+code/
+  app/
+    main.py            FastAPI routes and the web page
+    config.py          settings from environment variables
+    llm.py             Claude wrapper, schema conversion, fake LLM for tests
+    schemas.py         every data model (Pydantic)
+    prompts.py         the 5 prompts (P1 to P5)
+    examples.py        the built-in fictional chatbot
+    demo.py            pre-written answers for demo mode
+    live_client.py     live-mode HTTP calls
+    export.py          Markdown and CSV export
+    pipeline/          analyze, attacks, runner, judge, verdict, harden, retest
+  mock_bot/server.py   deliberately weak practice chatbot
+  static/              index.html, app.js, styles.css (no build step)
+  tests/               pytest tests for every step
+  tools/               export_prompts.py
 ```

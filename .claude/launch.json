@@ -4,13 +4,13 @@
     {
       "name": "sentinel-demo",
       "runtimeExecutable": ".venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--port", "8000", "--env-file", "demo.env"],
+      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--app-dir", "code", "--port", "8000", "--env-file", "code/demo.env"],
       "port": 8000
     },
     {
       "name": "mock-bot",
       "runtimeExecutable": ".venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "mock_bot.server"],
+      "runtimeArgs": ["-c", "import sys; sys.path.insert(0, 'code'); import runpy; runpy.run_module('mock_bot.server', run_name='__main__')"],
       "port": 8001
     }
   ]

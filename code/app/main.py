@@ -7,10 +7,12 @@ route just calls one pipeline function) and means there is no database.
 
 The Claude API key is only used here, on the server. The browser never sees it.
 
-Run:  uvicorn app.main:app --reload     then open http://127.0.0.1:8000
-API docs are generated automatically at http://localhost:8000/docs
+Run (from the code/ folder):  uvicorn app.main:app --reload
+then open http://127.0.0.1:8000
+API docs are generated automatically at http://127.0.0.1:8000/docs
 """
 
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, Request
@@ -206,9 +208,13 @@ def export_csv(body: CsvIn):
 # The web page
 # ---------------------------------------------------------------------------
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# The page files live in code/static, next to this app/ folder. Using a path
+# relative to this file means the server works whatever folder it starts from.
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/")
 def index():
-    return FileResponse("static/index.html")
+    return FileResponse(STATIC_DIR / "index.html")
