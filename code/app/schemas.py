@@ -203,7 +203,11 @@ class ComparisonRow(BaseModel):
 # ---------------------------------------------------------------------------
 
 class LiveConfig(BaseModel):
-    url: str
+    # Ignored when use_practice_bot is true (the server finds the practice bot itself).
+    url: str = ""
+    # True = test the built-in practice bot. The browser never sends its address:
+    # the server reads it from PRACTICE_BOT_URL (see live_client.practice_bot_chat_url).
+    use_practice_bot: bool = False
     headers: dict[str, str] = Field(default_factory=dict)
     # JSON with the placeholder {{attack}}, e.g. {"message": "{{attack}}"}
     body_template: str = '{"message": "{{attack}}"}'

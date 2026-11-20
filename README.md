@@ -189,13 +189,16 @@ Design choices:
 
 ## Deployment (prototype link)
 
-The prototype is hosted on **Vercel** (free Hobby plan), deployed straight from this GitHub repository:
+The prototype is hosted on **Vercel** (free Hobby plan), deployed straight from this GitHub repository, using Vercel **Services** (`vercel.json`):
 
-- `index.py` (repo root) is Vercel's entry point; it loads the app from `code/`.
-- `requirements.txt` (repo root) lists the runtime packages; `vercel.json` allows up to 300 s per request.
+| Service | Code | Public? |
+|---|---|---|
+| `sentinel` | `code/app/main.py` (`app`) | Yes: every path (`/`, `/api/...`, `/static/...`) |
+| `practice_bot` | `code/mock_bot/server.py` (`app`) | No: internal only |
+
+- `sentinel` has a **binding** to `practice_bot`: Vercel injects the practice bot's internal address into `PRACTICE_BOT_URL` at runtime. When live mode uses "Sentinel's practice bot", the browser sends no address and the server reads `PRACTICE_BOT_URL` (falling back to `http://127.0.0.1:8001/` locally).
 - The AI key is set in Vercel under **Settings → Environment Variables** as `GEMINI_API_KEY`, never in the repository.
-
-A `Dockerfile` is also included to run the app in any container host: `docker build -t sentinel-ai .` then `docker run -p 7860:7860 -e GEMINI_API_KEY=... sentinel-ai`.
+- A `Dockerfile` is also included to run the app in any container host: `docker build -t sentinel-ai .` then `docker run -p 7860:7860 -e GEMINI_API_KEY=... sentinel-ai`.
 
 ## Code structure
 

@@ -28,7 +28,7 @@ SCSE4041 Prompt Engineering mini project, team Sentinel AI (Team ID PE-B49-24, p
 - Model: `claude-opus-5-5` (env `SENTINEL_MODEL`). Opus 5.5 can't disable thinking or use forced tool_choice, and does not support prefill.
 
 ## Deployment
-- Prototype is hosted on Vercel from GitHub: root `index.py` adds `code/` to `sys.path` and re-exports `app`; root `requirements.txt` holds runtime deps (keep in sync with `code/requirements.txt`); `vercel.json` sets maxDuration 300. Key is a Vercel env var. Hugging Face Spaces was dropped (compute Spaces need a paid plan).
+- Prototype is hosted on Vercel using Services (`vercel.json`): `sentinel` (root `code/`, entrypoint `app.main:app`, public via rewrite `/(.*)`) and `practice_bot` (root `code/`, entrypoint `mock_bot.server:app`, internal). `sentinel` binds `practice_bot` as `PRACTICE_BOT_URL`; read it at call time in `live_client.practice_bot_chat_url()` (bindings exist only at runtime). Never hardcode the practice bot's address in the browser. Key is a Vercel env var. Hugging Face Spaces was dropped (compute Spaces need a paid plan).
 - AI provider: Claude if ANTHROPIC_API_KEY, else Gemini (`gemini-3.5-flash-lite`) if GEMINI_API_KEY, else demo mode.
 
 ## Rules to keep

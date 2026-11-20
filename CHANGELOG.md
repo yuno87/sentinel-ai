@@ -6,7 +6,8 @@ Dated changes since Milestone 1. Commit history on GitHub shows the same work.
 - Ran the prompt experiment (v1 to v4) and the 15 test inputs on Gemini 3.5 Flash-Lite; all raw outputs saved in `test-data/outputs/`.
 - Prompt v4: rewrote P3 (predict reply) after v3 judged only 2 % of attacks as Fail; v4 judged 31 %, ranked by how weak each bot is.
 - Fixed a bug found by test T07: the schema conversion dropped a field named "title", so the hardening step failed. Added a regression test.
-- Deployment moved from Hugging Face Spaces (needs a paid plan for apps that run code) to Vercel: `index.py`, root `requirements.txt`, `vercel.json`.
+- Deployment moved from Hugging Face Spaces (needs a paid plan for apps that run code) to Vercel, using Vercel Services: a public `sentinel` service and an internal `practice_bot` service, with a binding that gives Sentinel the practice bot's address in `PRACTICE_BOT_URL`.
+- Live mode's practice bot option no longer sends a hardcoded `127.0.0.1:8001` address from the browser; the server reads `PRACTICE_BOT_URL` at runtime (falling back to `127.0.0.1:8001` locally).
 - Added the four diagrams, real sample runs for the prompt sheets, the technical report and the Milestone 2 PDF builder.
 
 ## 2026-11-20: Gemini support (free key)

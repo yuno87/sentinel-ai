@@ -9,20 +9,43 @@ Every chatbot API looks different, so the user describes theirs:
 - reply_path:    where the reply text is in the response JSON,
                  e.g. "reply" or "choices.0.message.content"
 
+The built-in practice bot (code/mock_bot/) is a special case: the browser only
+sets use_practice_bot, and the SERVER works out its address with
+practice_bot_chat_url(). On Vercel the practice bot is a separate, internal
+service, and Vercel injects its address into PRACTICE_BOT_URL (a "binding").
+
 Only point this at chatbots you own or are allowed to test.
 """
 
 import json
+import os
 from typing import Any
+from urllib.parse import urljoin
 
 import httpx
 
 from app import config
 from app.schemas import LiveConfig
 
+# Where the practice bot runs when you start it yourself (python -m mock_bot.server).
+LOCAL_PRACTICE_BOT_URL = "http://127.0.0.1:8001/"
+
 
 class LiveClientError(Exception):
     """Something went wrong talking to the live chatbot."""
+
+
+def practice_bot_chat_url() -> str:
+    """
+    The practice bot's /chat address.
+
+    Read at call time (not at import), because Vercel injects PRACTICE_BOT_URL
+    into the running function; it isn't available during the build.
+    """
+    base = os.environ.get("PRACTICE_BOT_URL") or LOCAL_PRACTICE_BOT_URL
+    if not base.endswith("/"):
+        base += "/"  # so urljoin keeps any path prefix in the base URL
+    return urljoin(base, "chat")
 
 
 def build_body(template: str, attack_text: str, system_prompt: str) -> Any:
@@ -67,12 +90,13 @@ def extract_reply(data: Any, path: str) -> str:
 
 def send_attack(live: LiveConfig, attack_text: str, system_prompt: str = "") -> str:
     """POST one attack to the live endpoint and return the reply text."""
-    if not live.url.startswith(("http://", "https://")):
+    url = practice_bot_chat_url() if live.use_practice_bot else live.url
+    if not url.startswith(("http://", "https://")):
         raise LiveClientError("The endpoint URL must start with http:// or https://")
 
     body = build_body(live.body_template, attack_text, system_prompt)
     try:
-        response = httpx.post(live.url, json=body, headers=live.headers, timeout=config.LIVE_TIMEOUT_SECONDS)
+        response = httpx.post(url, json=body, headers=live.headers, timeout=config.LIVE_TIMEOUT_SECONDS)
     except httpx.TimeoutException:
         raise LiveClientError(f"The endpoint did not answer within {config.LIVE_TIMEOUT_SECONDS:.0f} seconds.")
     except httpx.HTTPError as exc:

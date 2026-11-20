@@ -1,5 +1,23 @@
 {
-  "functions": {
-    "index.py": { "maxDuration": 300 }
-  }
+  "services": {
+    "sentinel": {
+      "root": "code/",
+      "framework": "fastapi",
+      "entrypoint": "app.main:app",
+      "functions": {
+        "app/main.py": { "maxDuration": 300 }
+      },
+      "bindings": [
+        { "type": "service", "service": "practice_bot", "format": "url", "env": "PRACTICE_BOT_URL" }
+      ]
+    },
+    "practice_bot": {
+      "root": "code/",
+      "framework": "fastapi",
+      "entrypoint": "mock_bot.server:app"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": { "service": "sentinel" } }
+  ]
 }

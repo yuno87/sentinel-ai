@@ -76,8 +76,10 @@ const LAUNCH_TEXT = {
 // Ready-made settings for common chatbot APIs (live mode).
 const PRESETS = {
   mock: {
-    url: "http://127.0.0.1:8001/chat", headers: "{}", body: '{"message": "{{attack}}"}', path: "reply",
-    help: "Start the practice bot first: open a second terminal and run  python -m mock_bot.server",
+    // The practice bot has no address here: the server finds it itself
+    // (on Vercel through the PRACTICE_BOT_URL binding).
+    practice: true, url: "", headers: "{}", body: '{"message": "{{attack}}"}', path: "reply",
+    help: "Built into Sentinel, so no address is needed. (Running Sentinel on your own computer? Start the practice bot first: python -m mock_bot.server)",
   },
   simple: {
     url: "", headers: "{}", body: '{"message": "{{attack}}"}', path: "reply",
@@ -214,6 +216,7 @@ function selectedMode() { return document.querySelector("input[name=mode]:checke
 
 function applyPreset() {
   const p = PRESETS[$("live-preset").value];
+  show("live-url-row", !p.practice);
   $("live-url").value = p.url;
   $("live-headers").value = p.headers;
   $("live-body").value = p.body;
@@ -224,12 +227,14 @@ function applyPreset() {
 
 /** Read the live chatbot settings from the form (throws if something is wrong). */
 function readLiveConfig() {
+  const practice = Boolean(PRESETS[$("live-preset").value].practice);
   const url = $("live-url").value.trim();
-  if (!url) throw new Error("Enter your chatbot's web address (URL) first.");
+  if (!practice && !url) throw new Error("Enter your chatbot's web address (URL) first.");
   let headers;
   try { headers = JSON.parse($("live-headers").value || "{}"); }
   catch { throw new Error('Extra headers must be JSON, for example {"Authorization": "Bearer test-token"}.'); }
-  return { url, headers, body_template: $("live-body").value, reply_path: $("live-path").value.trim() };
+  return { url: practice ? "" : url, use_practice_bot: practice, headers,
+           body_template: $("live-body").value, reply_path: $("live-path").value.trim() };
 }
 
 async function testConnection() {
