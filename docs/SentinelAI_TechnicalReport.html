@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><title>SentinelAI_TechnicalReport</title><style>
+@page { size: A4; margin: 16mm 15mm 16mm 15mm; }
+body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1c2230; }
+h1 { font-size: 18pt; margin: 0 0 10px; border-bottom: 2px solid #3b5bdb; padding-bottom: 4px; }
+h1.section { page-break-before: always; }
+h2 { font-size: 13.5pt; margin: 18px 0 6px; color: #23305f; }
+h3 { font-size: 11.5pt; margin: 14px 0 4px; }
+p, li { margin: 4px 0; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; font-size: 9pt; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+th, td { border: 1px solid #c9ced8; padding: 4px 6px; text-align: left; vertical-align: top; }
+th { background: #eef1f7; }
+code { font-family: Consolas, monospace; font-size: 8.8pt; background: #f2f4f7; padding: 0 3px; border-radius: 3px; }
+pre { background: #f6f7f9; border: 1px solid #e1e4ea; padding: 8px 10px; border-radius: 5px; white-space: pre-wrap;
+      word-break: break-word; font-size: 8.3pt; line-height: 1.35; }
+pre code { background: none; padding: 0; font-size: inherit; }
+figure { margin: 10px 0 16px; text-align: center; page-break-inside: avoid; }
+figure svg, figure img { max-width: 100%; height: auto; border: 1px solid #e1e4ea; }
+figcaption { font-size: 9pt; color: #5d6677; margin-top: 4px; }
+.cover { text-align: left; }
+.cover h1 { font-size: 24pt; border: none; margin-top: 30px; }
+.cover .course { color: #5d6677; font-size: 11pt; margin-top: 40px; }
+.cover .subtitle { font-size: 13pt; color: #3d4554; margin-bottom: 24px; }
+.sheet { page-break-before: always; }
+.note { background: #fff8e1; border-left: 3px solid #b08800; padding: 6px 10px; font-size: 9.5pt; }
+</style></head><body><h1>Sentinel AI: Technical Report</h1>
+<p><em>Team Sentinel AI (PE-B49-24) · SCSE4041 Prompt Engineering · Problem C23 Prompt safety tester (red-team kit) · November 2026</em></p>
+<h2>Purpose</h2>
+<p>Sentinel AI tests a chatbot's system prompt for security weaknesses before launch. The user pastes the system prompt; Sentinel works out what the bot must protect, writes attacks tailored to it, gets the bot's replies (predicted, or from the real chatbot over HTTP), judges each reply with quoted evidence, and suggests fixes plus a hardened prompt that can be re-tested.</p>
+<h2>Architecture</h2>
+<p>A Python <strong>FastAPI</strong> server and a plain <strong>HTML/JavaScript</strong> page (three tabs: Setup, Report, Fix &amp; re-test). The server is stateless: the page holds the current results and sends each step what it needs. All AI calls go through one module (<code>llm.py</code>), which supports <strong>Gemini</strong> (free key) and <strong>Claude</strong>, chosen by which API key is set; with no key, a labelled demo mode plays back pre-written answers. Keys stay on the server and are never sent to the browser. The app is packaged with Docker and hosted on Hugging Face Spaces.</p>
+<h2>Tools and models</h2>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model</td>
+<td>Google <strong>Gemini 3.5 Flash-Lite</strong> via the <code>google-genai</code> SDK (free AI Studio key); Anthropic Claude Opus 5.5 also supported</td>
+</tr>
+<tr>
+<td>Output control</td>
+<td>Structured JSON output: each step sends a JSON Schema (<code>response_json_schema</code>) and the answer is validated with <strong>Pydantic</strong>; one retry if invalid</td>
+</tr>
+<tr>
+<td>Server and data</td>
+<td>FastAPI, Pydantic, httpx (live mode), python-dotenv</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td>pytest (66 offline tests with a fake model), plus scripted real runs (<code>run_tests.py</code>, <code>prompt_experiment.py</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2>Prompt design</h2>
+<p>Five prompts, one per step, each with a system prompt and a user template with <code>{variables}</code>:</p>
+<ul>
+<li><strong>P1 Analyse:</strong> purpose, rules R1..Rn, protected assets, capabilities, weak spots in the wording.</li>
+<li><strong>P2 Attacks:</strong> tailored attacks in 4 categories (hidden instructions in pasted content, rule override, jailbreak/trickery, prompt leak), with safety rules: no genuinely harmful content, made-up names, example.com only.</li>
+<li><strong>P3 Predict:</strong> a typical bot's reply, from a description of realistic chatbot behaviour plus two contrasting examples (the only few-shot prompt).</li>
+<li><strong>P4 Judge:</strong> a separate call that gives Pass/Fail, severity (Critical/High/Medium/Low), a one-line reason and an exact evidence quote.</li>
+<li><strong>P5 Harden:</strong> fixes marked as prompt or application changes, linked to the failed attacks, and a rewritten prompt.</li>
+</ul>
+<p>Plain code handles everything that doesn't need judgement: attack IDs, a safety screen, checking that the evidence quote is really in the reply, the launch call, the diff and the before/after comparison. Untrusted text is wrapped in XML tags so the model can tell instructions from material.</p>
+<p><strong>Iteration.</strong> Four versions were measured on the same 3 bots (6 runs each, Gemini 3.5 Flash-Lite). v1, the Milestone 1 single prompt, broke format in 1 of 6 runs, never tested hidden instructions and contradicted itself in 13 of 29 verdicts. v2 split the work and fixed the format (6/6, 4 of 4 categories) but judged 0 of 48 attacks as Fail. v3 added analysis, schemas, a separate judge and checked evidence (100 % found), but still only 2 % Fail. v4 rewrote the predictor with realistic behaviour and two examples: 31 % Fail, ranked by how weak each bot is (Copperleaf 9/16, ABC Bank 4/16, Lumen HR 2/16).</p>
+<h2>Test results</h2>
+<p>{{tests_summary}}</p>
+<h2>Limitations</h2>
+<p>{{limitations}}</p></body></html>

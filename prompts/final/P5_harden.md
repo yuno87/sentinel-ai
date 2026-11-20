@@ -5,8 +5,8 @@
 | Prompt ID and name | P5 Harden |
 | Step in the workflow | Step 5 of 5: runs when the user clicks Suggest fixes, after the scan. |
 | Purpose | Suggest fixes (prompt changes and app changes, linked to the failed attacks) and rewrite the system prompt to be harder to attack. |
-| Tool and model | Anthropic Claude API, model `claude-opus-5-5` (Python SDK, called from `code/app/llm.py`) |
-| Settings | effort `high`, adaptive thinking (model default), max_tokens 16000, structured JSON output. Temperature is not set: this model does not accept it. |
+| Tool and model | Google Gemini API, model `gemini-3.5-flash-lite` (free AI Studio key, `google-genai` Python SDK), called from `code/app/llm.py`. The same prompt also runs unchanged on Anthropic Claude (`claude-opus-5-5`) when that key is set. |
+| Settings | Gemini: default settings (temperature and thinking left at the model defaults), structured JSON output via `response_json_schema`. On Claude: effort `high`, max_tokens 16000. |
 | Number of examples included | 0 (zero-shot; the rules and output schema do the steering) |
 | Output format | JSON matching the `Hardening` schema below, validated with Pydantic |
 
@@ -63,6 +63,9 @@ Propose fixes and write the hardened prompt.
     "fixes": {
       "items": {
         "properties": {
+          "title": {
+            "type": "string"
+          },
           "kind": {
             "description": "'prompt' = change the system prompt; 'application' = change the app code around the bot",
             "enum": [
@@ -83,6 +86,7 @@ Propose fixes and write the hardened prompt.
           }
         },
         "required": [
+          "title",
           "kind",
           "description",
           "fixes_attacks"

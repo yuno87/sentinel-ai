@@ -61,3 +61,17 @@ def no_demo_delay(monkeypatch):
     """Demo answers normally pause briefly for the progress bar; tests don't need that."""
     from app import config
     monkeypatch.setattr(config, "DEMO_DELAY_SECONDS", 0)
+
+
+@pytest.fixture(autouse=True)
+def never_call_a_real_ai(monkeypatch):
+    """
+    Tests must never use a real API key, even if code/.env has one: they would
+    cost money/quota and give different answers each time. Every test starts
+    in demo mode with no keys; tests that need otherwise set it themselves.
+    """
+    from app import config
+    monkeypatch.setattr(config, "ANTHROPIC_API_KEY", "")
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "")
+    monkeypatch.setattr(config, "PROVIDER", "demo")
+    monkeypatch.setattr(config, "DEMO_MODE", True)

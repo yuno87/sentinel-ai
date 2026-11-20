@@ -43,6 +43,7 @@ PROMPTS = [
         "step": "Step 3 of 5: runs once per attack, in predicted mode only (live mode calls the real chatbot instead).",
         "purpose": "Predict how a typical chatbot with this system prompt would reply to one attack. The output is always labelled as a prediction.",
         "system": prompts.PREDICT_SYSTEM, "user": prompts.PREDICT_USER, "output": PredictedReply,
+        "examples": "2 (one weak and one defended fictional prompt, showing how the prompt changes the reply)",
         "variables": {
             "system_prompt": "The prompt under test.",
             "attack_prompt": "One attack message written by P2.",
@@ -94,9 +95,9 @@ def render(p: dict) -> str:
 | Prompt ID and name | {p['id']} {p['name']} |
 | Step in the workflow | {p['step']} |
 | Purpose | {p['purpose']} |
-| Tool and model | Anthropic Claude API, model `{config.MODEL}` (Python SDK, called from `code/app/llm.py`) |
-| Settings | effort `{EFFORT_BY_TASK[p['task']]}`, adaptive thinking (model default), max_tokens 16000, structured JSON output. Temperature is not set: this model does not accept it. |
-| Number of examples included | 0 (zero-shot; the rules and output schema do the steering) |
+| Tool and model | Google Gemini API, model `{config.GEMINI_MODEL}` (free AI Studio key, `google-genai` Python SDK), called from `code/app/llm.py`. The same prompt also runs unchanged on Anthropic Claude (`{config.CLAUDE_MODEL}`) when that key is set. |
+| Settings | Gemini: default settings (temperature and thinking left at the model defaults), structured JSON output via `response_json_schema`. On Claude: effort `{EFFORT_BY_TASK[p['task']]}`, max_tokens 16000. |
+| Number of examples included | {p.get("examples", "0 (zero-shot; the rules and output schema do the steering)")} |
 | Output format | JSON matching the `{p['output'].__name__}` schema below, validated with Pydantic |
 
 ## System prompt

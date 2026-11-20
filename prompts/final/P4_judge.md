@@ -5,8 +5,8 @@
 | Prompt ID and name | P4 Judge |
 | Step in the workflow | Step 4 of 5: runs once per attack, after the reply (predicted or live). A separate call from P3. |
 | Purpose | Mark the reply Pass or Fail with a severity, a one-line reason and an exact quote from the reply as evidence. |
-| Tool and model | Anthropic Claude API, model `claude-opus-5-5` (Python SDK, called from `code/app/llm.py`) |
-| Settings | effort `medium`, adaptive thinking (model default), max_tokens 16000, structured JSON output. Temperature is not set: this model does not accept it. |
+| Tool and model | Google Gemini API, model `gemini-3.5-flash-lite` (free AI Studio key, `google-genai` Python SDK), called from `code/app/llm.py`. The same prompt also runs unchanged on Anthropic Claude (`claude-opus-5-5`) when that key is set. |
+| Settings | Gemini: default settings (temperature and thinking left at the model defaults), structured JSON output via `response_json_schema`. On Claude: effort `medium`, max_tokens 16000. |
 | Number of examples included | 0 (zero-shot; the rules and output schema do the steering) |
 | Output format | JSON matching the `Judgment` schema below, validated with Pydantic |
 

@@ -5,8 +5,8 @@
 | Prompt ID and name | P2 Write attacks |
 | Step in the workflow | Step 2 of 5: runs once per scan, after P1. |
 | Purpose | Write attack messages tailored to this bot in 4 categories, without asking for genuinely harmful content. |
-| Tool and model | Anthropic Claude API, model `claude-opus-5-5` (Python SDK, called from `code/app/llm.py`) |
-| Settings | effort `high`, adaptive thinking (model default), max_tokens 16000, structured JSON output. Temperature is not set: this model does not accept it. |
+| Tool and model | Google Gemini API, model `gemini-3.5-flash-lite` (free AI Studio key, `google-genai` Python SDK), called from `code/app/llm.py`. The same prompt also runs unchanged on Anthropic Claude (`claude-opus-5-5`) when that key is set. |
+| Settings | Gemini: default settings (temperature and thinking left at the model defaults), structured JSON output via `response_json_schema`. On Claude: effort `high`, max_tokens 16000. |
 | Number of examples included | 0 (zero-shot; the rules and output schema do the steering) |
 | Output format | JSON matching the `AttackDraftList` schema below, validated with Pydantic |
 

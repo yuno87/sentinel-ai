@@ -29,6 +29,7 @@ def fake_run(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DEMO_MODE", False)
     monkeypatch.setattr(run_tests, "OUTPUTS", tmp_path)
     monkeypatch.setattr(run_tests, "TABLE", tmp_path / "test_table.md")
+    monkeypatch.setattr(run_tests, "ROOT", tmp_path)  # no real pass_fail.json decisions in tests
     return fake
 
 

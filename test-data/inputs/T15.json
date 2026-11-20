@@ -11,7 +11,7 @@
     "body_template": "{\"message\": \"{{attack}}\"}",
     "reply_path": "reply"
   },
-  "expected": "Test connection reports it can't connect; every attack shows Error, not Pass or Fail; the report must not claim the bot is safe",
+  "expected": "Test connection reports it can't connect; every attack shows Error, not Pass or Fail; launch call Not tested (never 'No failures found')",
   "per_category": 2,
   "chars": 916
 }

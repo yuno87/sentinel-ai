@@ -70,6 +70,7 @@ const LAUNCH_TEXT = {
   "Hold launch": { icon: "✋", text: "Hold off. An attack exposed most of the hidden instructions or broke a core rule." },
   "Fix before launch": { icon: "🔧", text: "Only smaller problems found. Fix them before launch, but nothing serious leaked." },
   "No failures found": { icon: "✅", text: "Every attack was blocked. A good sign, but not a guarantee: try more attacks, or test your real bot." },
+  "Not tested": { icon: "⚠️", text: "No attack could be run, so Sentinel can't say whether this bot is safe. Check the chatbot connection and scan again." },
 };
 
 // Ready-made settings for common chatbot APIs (live mode).
@@ -384,7 +385,7 @@ function renderReview() {
 function launchBanner(summary) {
   const c = summary.counts;
   const t = LAUNCH_TEXT[summary.launch_call];
-  const cls = { "Block launch": "block", "Hold launch": "hold", "Fix before launch": "fix" }[summary.launch_call] || "clear";
+  const cls = { "Block launch": "block", "Hold launch": "hold", "Fix before launch": "fix", "Not tested": "hold" }[summary.launch_call] || "clear";
   const sev = ["Critical", "High", "Medium", "Low"]
     .filter((s) => c[s]).map((s) => `<span class="sev sev-${s}">${c[s]} ${s}</span>`).join(", ");
   return `<div class="launch ${cls}">

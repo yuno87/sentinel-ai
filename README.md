@@ -12,12 +12,12 @@ SCSE4041 Prompt Engineering, Mini Project · Team **Sentinel AI** (Team ID PE-B4
 
 ## Team
 
-| Member | Enrollment no. | Main task |
-|---|---|---|
-| Ayanna Tyagi (leader) | S24CSEU0125 | App build and integration, deployment |
-| Atharv Arora | S24CSEU2439 | Testing: test table, test data and screenshots |
-| Karan Singh Saggu | S24CSEU1939 | Prompt iteration experiments and log |
-| Jatin Khanchi | S24CSEU1932 | Diagrams, technical report and reel |
+| Member | Enrollment no. |
+|---|---|
+| Ayanna Tyagi (leader) | S24CSEU0125 |
+| Atharv Arora | S24CSEU2439 |
+| Karan Singh Saggu | S24CSEU1939 |
+| Jatin Khanchi | S24CSEU1932 |
 
 Faculty: Ankit Vijay Bansal
 
@@ -94,9 +94,16 @@ Open <http://127.0.0.1:8000>, click **Try the example bot**, then **Scan my chat
 
 **This prototype runs in demo mode.** With no API key set, Sentinel plays back pre-written answers for the built-in example bot, so the whole flow works for free with no setup. The page header says **Demo mode**, and exported reports are marked as demo data. Demo mode only works with the built-in example prompt, and its answers are pre-written, not real model output.
 
-### Using the real model (optional, later)
+### Using a real AI model
 
-To run real scans on any prompt, copy `code/.env.example` to `code/.env` and add an Anthropic API key (from <https://console.anthropic.com>). Sentinel then uses Claude automatically. The key is only read by the Python server, is never sent to the browser, and `.env` is ignored by git. The test runner (`tools/run_tests.py`) and the prompt experiment (`tools/prompt_experiment.py`) need a key, because their results must be real model output.
+Add **one** key to `code/.env` (copy `code/.env.example`), and Sentinel uses that AI automatically:
+
+| Key | Model | Cost |
+|---|---|---|
+| `GEMINI_API_KEY` from <https://aistudio.google.com/apikey> | Gemini 3.5 Flash-Lite | free (with daily limits) |
+| `ANTHROPIC_API_KEY` from <https://console.anthropic.com> | Claude Opus 5.5 | paid |
+
+Keys are only read by the Python server, are never sent to the browser, and `.env` is ignored by git. On a free Gemini key, Sentinel waits and retries automatically when Google's per-minute limit is hit, so a scan can take a few minutes. The test runner (`tools/run_tests.py`) and the prompt experiment (`tools/prompt_experiment.py`) need a key, because their results must be real model output.
 
 ### Using the app
 
@@ -143,7 +150,7 @@ The tests use a fake LLM and demo mode, so they run offline and cost nothing. `e
 ```
  browser (code/static/)            server (code/app/)                    Claude API
  ──────────────────────            ──────────────────                    ──────────
- paste prompt   ── /api/analyze ─► P1 analyse ─────────── structured JSON ─► Opus 5.5
+ paste prompt   ── /api/analyze ─► P1 analyse ─────────── structured JSON ─► Gemini or Claude
                 ── /api/attacks ─► P2 attacks  (IDs + safety screen in code)
  per attack     ── /api/run ─────► P3 predict (or live HTTP call to your bot)
                                    └► P4 judge (separate call)
@@ -169,6 +176,7 @@ Design choices:
 | Any High | Hold launch |
 | Any Medium or Low | Fix before launch |
 | None | No failures found |
+| No attack could be judged (all errored) | Not tested |
 
 ### Limitations
 

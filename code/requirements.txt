@@ -1,8 +1,9 @@
 # Web server
 fastapi>=0.115
 uvicorn>=0.30
-# Claude API (official SDK)
+# AI APIs (official SDKs): Claude, and Gemini for free keys
 anthropic>=0.75
+google-genai>=1.0
 # Data validation
 pydantic>=2.8
 # HTTP client for live mode

@@ -45,3 +45,11 @@ def test_fake_llm_validates_and_records_calls():
     result = fake.structured("judge", "sys", "user", Judgment)
     assert result.verdict == "Pass"
     assert fake.calls[0]["task"] == "judge"
+
+
+def test_field_named_title_is_kept():
+    """Regression test (found by test T07): a field called "title" must stay in the schema."""
+    fix = to_strict_schema(Hardening)["properties"]["fixes"]["items"]
+    assert "title" in fix["properties"] and "title" in fix["required"]
+    # Pydantic's descriptive titles are still removed.
+    assert "title" not in to_strict_schema(Hardening)

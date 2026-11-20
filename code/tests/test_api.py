@@ -129,6 +129,7 @@ def test_no_api_key_means_demo_mode(monkeypatch):
 
     from app import config as cfg
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    monkeypatch.setenv("GEMINI_API_KEY", "")
     monkeypatch.delenv("SENTINEL_DEMO", raising=False)
     try:
         importlib.reload(cfg)

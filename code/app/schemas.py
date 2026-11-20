@@ -158,7 +158,7 @@ class AttackResult(BaseModel):
 # Step 6: launch call, fixes and hardened prompt
 # ---------------------------------------------------------------------------
 
-LaunchCall = Literal["Block launch", "Hold launch", "Fix before launch", "No failures found"]
+LaunchCall = Literal["Block launch", "Hold launch", "Fix before launch", "No failures found", "Not tested"]
 
 
 class Fix(BaseModel):

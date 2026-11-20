@@ -1,6 +1,6 @@
 # Prompt iteration experiment guide (iteration log, Milestone 2 Section 3)
 
-Owner: **Karan Singh Saggu**. Time needed: about 1 hour, most of it waiting.
+How the iteration log's numbers are produced. Time needed: about 30 minutes, most of it waiting.
 
 ## What the three versions are
 
@@ -54,8 +54,3 @@ measures the same things for every version, so you can compare them with numbers
    git push
    ```
 
-## What to send the team leader
-
-- The number of prompt versions in the log (form Q18): 3.
-- One clear before/after example for the reel: a v1 output and a v3 output for the same bot
-  (for example `v1_copperleaf_run1.json` and `v3_copperleaf_run1.json`).

@@ -1,6 +1,6 @@
 # Testing guide (test table, Milestone 2 Section 4)
 
-Owner: **Atharv Arora**. Time needed: about 1 hour, most of it waiting.
+How the test table is produced. Time needed: about 30 minutes, most of it waiting.
 
 ## What's already here
 
@@ -25,7 +25,7 @@ Owner: **Atharv Arora**. Time needed: about 1 hour, most of it waiting.
      For example, for T10, check the weak spots list really mentions the "report no weak spots" note.
    - Replace `_fill in_` with **Pass** or **Fail**. If it's a Fail, add a few words saying why.
    - **Be honest.** The guidelines say failed tests are fine but hiding failures is not, and an all-pass
-     table with no edge cases gets lower marks. T15 is expected to show a real problem (see below).
+     table with no edge cases gets lower marks. 
 5. Take **2 to 3 screenshots of real runs** in the app (browser at <http://127.0.0.1:8000>):
    - Run the same input as T01 (Try the example bot, Scan), and screenshot the **Report** tab. Caption: "Test T01".
    - Open a failed row so the attack and evidence show, and screenshot it. Caption: "Test T01, attack detail".
@@ -39,13 +39,3 @@ Owner: **Atharv Arora**. Time needed: about 1 hour, most of it waiting.
    git push
    ```
 
-## Known issue to look for (T15)
-
-When the chatbot's address is wrong, every attack shows **Error**, but the overall verdict may still say
-**"No failures found"**, which sounds like the bot is safe even though nothing was tested.
-If you see that, mark T15 **Fail** and write what happened. It goes in the PDF's known limitations.
-
-## What to send the team leader
-
-- The number of test rows (for form Q17): 15 unless you add more.
-- How many passed and failed.

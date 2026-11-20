@@ -10,12 +10,17 @@ the same things for each, so the iteration log can report real numbers:
     tailored         % of attacks that mention something specific to the bot
     unsafe           attacks using real-looking domains or harmful topics
     verdicts         % of attacks that got a usable verdict and severity
-    evidence_ok      % of verdicts whose evidence quote is really in the reply (v3 only)
+    evidence_ok      % of verdicts whose evidence quote is really in the reply (v3 and v4)
 
-The prompt texts for v1 and v2 are read from prompts/v1 and prompts/v2, and
-v3 is the app's own pipeline, so the experiment runs exactly what is saved.
+The prompt texts for v1 and v2 are read from prompts/v1 and prompts/v2. v3 and
+v4 are the app's own pipeline: v4 is the current (final) prompts, and v3 is the
+same pipeline with the older P3 predictor read from prompts/v3/. So the
+experiment runs exactly what is saved.
 
-Needs an API key in code/.env. Run from the code/ folder:
+For what the verdicts said (how many Fails, consistency), run
+tools/experiment_verdicts.py on the results folder afterwards.
+
+Needs an API key in code/.env (GEMINI_API_KEY or ANTHROPIC_API_KEY). Run from the code/ folder:
 
     python -m tools.prompt_experiment                 # all versions, 3 bots, 2 runs each
     python -m tools.prompt_experiment --versions v1   # just one version
@@ -34,7 +39,7 @@ from pathlib import Path
 from pydantic import BaseModel, ValidationError
 
 from app.examples import EXAMPLE_SYSTEM_PROMPT
-from app.llm import ClaudeClient, LLMError
+from app.llm import LLMError, get_real_llm
 from app.pipeline.analyze import analyze_prompt
 from app.pipeline.attacks import generate_attacks, safety_problems
 from app.pipeline.runner import run_attacks
@@ -141,7 +146,7 @@ V1_LINE = re.compile(
 )
 
 
-def run_v1(llm: ClaudeClient, bot: dict, per_category: int) -> dict:
+def run_v1(llm, bot: dict, per_category: int) -> dict:
     p = read_prompt_file(ROOT / "prompts" / "v1" / "P0_baseline_single_prompt.md")
     answer = llm.text("v1", "", p["user"].replace("{SYSTEM_PROMPT}", bot["system_prompt"]))
     numbered = [line for line in answer.splitlines() if re.match(r"^\s*\d+[.)]", line)]
@@ -159,7 +164,7 @@ def run_v1(llm: ClaudeClient, bot: dict, per_category: int) -> dict:
     }
 
 
-def run_v2(llm: ClaudeClient, bot: dict, per_category: int) -> dict:
+def run_v2(llm, bot: dict, per_category: int) -> dict:
     p_attacks = read_prompt_file(ROOT / "prompts" / "v2" / "P2v2_attacks.md")
     p_judge = read_prompt_file(ROOT / "prompts" / "v2" / "P3v2_predict_judge.md")
     result = {"calls": 1, "requested": per_category * 4, "parse_failures": 0, "attacks": [],
@@ -192,8 +197,8 @@ def run_v2(llm: ClaudeClient, bot: dict, per_category: int) -> dict:
     return result
 
 
-def run_v3(llm: ClaudeClient, bot: dict, per_category: int) -> dict:
-    """v3 is the app's own pipeline: P1 analyse, P2 attacks, P3 predict, P4 judge."""
+def run_v4(llm, bot: dict, per_category: int) -> dict:
+    """v4 (final) is the app's own pipeline: P1 analyse, P2 attacks, P3 predict, P4 judge."""
     result = {"calls": 0, "requested": per_category * 4, "parse_failures": 0, "attacks": [],
               "verdicts_ok": 0, "evidence_checked": 0, "evidence_ok": 0, "raw": {}}
     try:
@@ -216,7 +221,19 @@ def run_v3(llm: ClaudeClient, bot: dict, per_category: int) -> dict:
     return result
 
 
-RUNNERS = {"v1": run_v1, "v2": run_v2, "v3": run_v3}
+def run_v3(llm, bot: dict, per_category: int) -> dict:
+    """v3 is the same pipeline, but with the older P3 predictor saved in prompts/v3/."""
+    from app import prompts
+    old_p3 = read_prompt_file(ROOT / "prompts" / "v3" / "P3v3_predict.md")
+    current = prompts.PREDICT_SYSTEM
+    prompts.PREDICT_SYSTEM = old_p3["system"]
+    try:
+        return run_v4(llm, bot, per_category)
+    finally:
+        prompts.PREDICT_SYSTEM = current
+
+
+RUNNERS = {"v1": run_v1, "v2": run_v2, "v3": run_v3, "v4": run_v4}
 
 
 # ---------------------------------------------------------------------------
@@ -261,22 +278,27 @@ def summarise(rows: list[dict]) -> dict:
 
 def main(argv=None, llm=None) -> dict:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--versions", default="v1,v2,v3")
+    parser.add_argument("--versions", default="v1,v2,v3,v4")
     parser.add_argument("--runs", type=int, default=2, help="runs per bot per version")
-    parser.add_argument("--per-category", type=int, default=2, help="attacks per category for v2 and v3")
+    parser.add_argument("--per-category", type=int, default=2, help="attacks per category for v2 to v4")
+    parser.add_argument("--into", help="add these versions to an existing results folder (its name, e.g. "
+                                       "2026-11-20_2345) instead of starting a new one; the summary is merged")
     args = parser.parse_args(argv)
     versions = [v.strip() for v in args.versions.split(",")]
 
-    llm = llm or ClaudeClient()
-    stamp = datetime.now().strftime("%Y-%m-%d_%H%M")
-    out = OUT_DIR / stamp
+    llm = llm or get_real_llm()
+    out = OUT_DIR / (args.into or datetime.now().strftime("%Y-%m-%d_%H%M"))
     out.mkdir(parents=True, exist_ok=True)
 
-    calls_per_run = {"v1": 1, "v2": 1 + 4 * args.per_category, "v3": 2 + 8 * args.per_category}
+    calls_per_run = {"v1": 1, "v2": 1 + 4 * args.per_category, "v3": 2 + 8 * args.per_category,
+                     "v4": 2 + 8 * args.per_category}
     planned = sum(calls_per_run[v] for v in versions) * len(BOTS) * args.runs
     print(f"About {planned} API calls planned. Saving to {out}\n")
 
     summary, all_rows = {}, {}
+    if args.into and (out / "summary.json").exists():  # keep the versions already in this folder
+        earlier = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+        summary, all_rows = earlier["summary"], earlier["rows"]
     for version in versions:
         rows = []
         for bot in BOTS:
@@ -292,7 +314,10 @@ def main(argv=None, llm=None) -> dict:
         summary[version] = summarise(rows)
         all_rows[version] = rows
 
-    (out / "summary.json").write_text(json.dumps({"summary": summary, "rows": all_rows}, indent=2), encoding="utf-8")
+    from app import config
+    meta = {"provider": config.PROVIDER, "model": config.MODEL, "runs_per_bot": args.runs,
+            "per_category": args.per_category, "bots": [b["name"] for b in BOTS]}
+    (out / "summary.json").write_text(json.dumps({"meta": meta, "summary": summary, "rows": all_rows}, indent=2), encoding="utf-8")
     md = ["| Version | Runs | Format OK | Parse failures | Avg attacks | Categories (of 4) | Tailored % | Unsafe | Verdicts % | Evidence found % | Avg seconds |",
           "|---|---|---|---|---|---|---|---|---|---|---|"]
     for v, s in summary.items():
@@ -300,6 +325,8 @@ def main(argv=None, llm=None) -> dict:
                   f"{s['avg_categories_of_4']} | {s['avg_tailored_pct']} | {s['unsafe_total']} | "
                   f"{s['avg_verdicts_pct']} | {s['avg_evidence_pct'] if s['avg_evidence_pct'] is not None else 'n/a'} | "
                   f"{s['avg_seconds']} |")
+    md.insert(0, f"Model: {meta['model']} ({meta['provider']}). {args.runs} run(s) per bot. "
+                 f"Bots: {', '.join(meta['bots'])}.\n")
     (out / "summary.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print("\n" + "\n".join(md))
     print(f"\nSaved: {out}")

@@ -5,8 +5,13 @@ All settings come from environment variables (or a `.env` file in the project
 root). Keeping them here means the rest of the code never reads `os.environ`
 directly, which makes it easy to see every setting in one place.
 
-The API key is read here and passed to the Anthropic client on the server.
-It is never sent to the browser.
+API keys are read here and used only by the Python server. They are never
+sent to the browser.
+
+Which AI the app uses is decided by which key is set (first match wins):
+    ANTHROPIC_API_KEY  -> Claude  (paid)
+    GEMINI_API_KEY     -> Gemini  (free key from Google AI Studio)
+    neither            -> demo mode (pre-written answers, no AI calls)
 """
 
 import os
@@ -16,20 +21,30 @@ from dotenv import load_dotenv
 # Load variables from .env if the file exists. Real environment variables win.
 load_dotenv()
 
-# The Anthropic SDK reads ANTHROPIC_API_KEY itself; we only check if it is set
-# so we can show a helpful error message instead of a stack trace.
 ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "").strip()
+GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip()
 
-# One model for every step. Opus 5.5 is the current default Claude model.
-MODEL: str = os.getenv("SENTINEL_MODEL", "claude-opus-5-5").strip()
+# One model per provider, used for every step.
+CLAUDE_MODEL: str = os.getenv("SENTINEL_MODEL", "claude-opus-5-5").strip()
+# Gemini 3.5 Flash-Lite: a stable model that free API keys can use.
+GEMINI_MODEL: str = os.getenv("SENTINEL_GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
+
+_force_demo = os.getenv("SENTINEL_DEMO", "0").strip() in ("1", "true", "yes")
+if _force_demo:
+    PROVIDER = "demo"
+elif ANTHROPIC_API_KEY:
+    PROVIDER = "claude"
+elif GEMINI_API_KEY:
+    PROVIDER = "gemini"
+else:
+    PROVIDER = "demo"
+
+# The model actually in use (shown on the page and in reports).
+MODEL: str = {"claude": CLAUDE_MODEL, "gemini": GEMINI_MODEL}.get(PROVIDER, "demo")
 
 # Demo mode plays back pre-written answers for the built-in example bot, so the
-# app works without an API key. Nothing in demo mode calls Claude.
-# It turns on automatically when no API key is set, or when SENTINEL_DEMO=1.
-DEMO_MODE: bool = (
-    os.getenv("SENTINEL_DEMO", "0").strip() in ("1", "true", "yes")
-    or not ANTHROPIC_API_KEY
-)
+# app works with no key at all. Nothing in demo mode calls an AI.
+DEMO_MODE: bool = PROVIDER == "demo"
 
 # Seconds each demo answer waits, so the progress checklist is visible.
 DEMO_DELAY_SECONDS: float = float(os.getenv("SENTINEL_DEMO_DELAY", "0.4") or 0)

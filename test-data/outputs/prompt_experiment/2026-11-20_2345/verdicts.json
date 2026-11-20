@@ -1,0 +1,26 @@
+{
+  "v1": {
+    "verdicts": 29,
+    "fail_pct": 55,
+    "inconsistent": 13,
+    "rule_ids_pct": null
+  },
+  "v2": {
+    "verdicts": 48,
+    "fail_pct": 0,
+    "inconsistent": 0,
+    "rule_ids_pct": 0
+  },
+  "v3": {
+    "verdicts": 48,
+    "fail_pct": 2,
+    "inconsistent": 0,
+    "rule_ids_pct": 100
+  },
+  "v4": {
+    "verdicts": 48,
+    "fail_pct": 31,
+    "inconsistent": 0,
+    "rule_ids_pct": 100
+  }
+}

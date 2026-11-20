@@ -80,7 +80,8 @@ def make_result(attack, severity: str | None) -> AttackResult:
     (["Low"], "Fix before launch"),
     (["None", "None"], "No failures found"),
     ([None, "None"], "No failures found"),  # an errored attack is not a failure
-    ([], "No failures found"),
+    ([None, None], "Not tested"),  # nothing could be judged
+    ([], "Not tested"),
 ])
 def test_launch_call(attack, severities, expected):
     assert launch_call([make_result(attack, s) for s in severities]) == expected

@@ -1,14 +1,15 @@
 """
-One small wrapper around the Claude API.
+One small wrapper around the AI model (Claude or Gemini).
 
 Every pipeline step calls `llm.structured(...)`: it sends a system prompt and a
 user message, asks for JSON matching a Pydantic class, and returns a
 validated object of that class.
 
 Why a wrapper?
-- All API details (model, effort, fallbacks, error handling) live in one place.
-- Tests can swap in a fake client with the same `structured` method, so they
-  run offline and free.
+- All API details (model, settings, retries, error handling) live in one place.
+- The pipeline doesn't care which AI is behind it: ClaudeClient and
+  GeminiClient have the same two methods, `structured` and `text`.
+- Tests can swap in a fake client with the same methods, so they run offline and free.
 - Demo mode swaps in a client that plays back canned responses.
 """
 
@@ -16,6 +17,7 @@ from __future__ import annotations
 
 import copy
 import json
+import time
 from typing import Protocol, TypeVar
 
 import anthropic
@@ -27,7 +29,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class LLMError(Exception):
-    """Raised when Claude cannot give us a usable answer."""
+    """Raised when the AI cannot give us a usable answer."""
 
 
 class LLMClient(Protocol):
@@ -58,7 +60,13 @@ def to_strict_schema(model: type[BaseModel]) -> dict:
             if "$ref" in node:
                 name = node["$ref"].split("/")[-1]
                 return walk(copy.deepcopy(definitions[name]))
-            node = {key: walk(value) for key, value in node.items() if key != "title"}
+            # Drop Pydantic's descriptive "title" labels, but never inside
+            # "properties", where "title" can be a real field name (Fix.title).
+            node = {
+                key: ({prop: walk(schema) for prop, schema in value.items()} if key == "properties" else walk(value))
+                for key, value in node.items()
+                if not (key == "title" and isinstance(value, str))
+            }
             if node.get("type") == "object" and "properties" in node:
                 node["required"] = list(node["properties"].keys())
                 node["additionalProperties"] = False
@@ -88,7 +96,7 @@ EFFORT_BY_TASK = {
 class ClaudeClient:
     """Calls the real Anthropic API."""
 
-    def __init__(self, model: str = config.MODEL):
+    def __init__(self, model: str = config.CLAUDE_MODEL):
         if not config.ANTHROPIC_API_KEY:
             raise LLMError(
                 "This needs real model answers, so it needs ANTHROPIC_API_KEY in code/.env. "
@@ -161,12 +169,87 @@ class ClaudeClient:
 
 
 # ---------------------------------------------------------------------------
+# The real Gemini client (works with a free Google AI Studio key)
+# ---------------------------------------------------------------------------
+
+class GeminiClient:
+    """
+    Calls Google's Gemini API through the official google-genai SDK.
+
+    Free keys have low per-minute limits, so when Google answers "429 too many
+    requests" we wait and try again (waiting longer each time) instead of failing.
+    """
+
+    MAX_TRIES = 6
+
+    def __init__(self, model: str = config.GEMINI_MODEL):
+        if not config.GEMINI_API_KEY:
+            raise LLMError("GEMINI_API_KEY is not set. Add it to code/.env.")
+        from google import genai  # imported here so the app starts even without the package
+
+        self.model = model
+        self.client = genai.Client(api_key=config.GEMINI_API_KEY)
+
+    def _generate(self, task: str, system: str, user: str, schema: dict | None) -> str:
+        from google.genai import errors, types
+
+        settings = types.GenerateContentConfig(
+            system_instruction=system or None,
+            # With a schema, Gemini must answer with JSON that matches it.
+            response_mime_type="application/json" if schema else None,
+            response_json_schema=schema,
+        )
+        for attempt in range(self.MAX_TRIES):
+            try:
+                response = self.client.models.generate_content(model=self.model, contents=user, config=settings)
+            except errors.ClientError as exc:
+                if exc.code == 429 and attempt < self.MAX_TRIES - 1:
+                    time.sleep(min(60, 5 * 2 ** attempt))  # 5, 10, 20, 40, 60 seconds
+                    continue
+                if exc.code in (400, 401, 403) and "key" in str(exc).lower():
+                    raise LLMError("The Gemini API key was rejected. Check GEMINI_API_KEY.") from exc
+                if exc.code == 429:
+                    raise LLMError("Gemini's free limit was reached. Wait a while (daily limits reset at "
+                                   "midnight Pacific time) and try again.") from exc
+                raise LLMError(f"Gemini API error {exc.code}: {exc.message}") from exc
+            except errors.ServerError as exc:
+                if attempt < self.MAX_TRIES - 1:
+                    time.sleep(5 * (attempt + 1))
+                    continue
+                raise LLMError(f"Gemini server error {exc.code}. Try again later.") from exc
+            except OSError as exc:  # network problems
+                raise LLMError("Could not reach the Gemini API. Check your internet connection.") from exc
+
+            text = response.text
+            if not text:
+                # Gemini returns no text when its safety filter blocks a request.
+                raise LLMError(f"Gemini declined the '{task}' step (no answer returned).")
+            return text
+        raise LLMError(f"Gemini kept failing on the '{task}' step.")
+
+    def structured(self, task: str, system: str, user: str, output_model: type[T]) -> T:
+        schema = to_strict_schema(output_model)
+        last_problem = ""
+        for _attempt in range(2):  # one retry if the JSON doesn't validate
+            text = self._generate(task, system, user, schema)
+            try:
+                return output_model.model_validate_json(text)
+            except ValidationError as exc:
+                last_problem = f"the JSON did not match the schema: {exc.errors()[:2]}"
+        raise LLMError(f"Gemini's answer for the '{task}' step was unusable: {last_problem}")
+
+    def text(self, task: str, system: str, user: str) -> str:
+        """Plain-text answer with no schema (used only by the prompt experiment)."""
+        return self._generate(task, system, user, None)
+
+
+# ---------------------------------------------------------------------------
 # A fake client for tests
 # ---------------------------------------------------------------------------
 
 class FakeLLM:
     """
-    A stand-in for Claude used in tests.
+    A stand-in for the real AI, used in tests.
 
     You give it a function per task that returns a dict (or a model). It
     records every call so tests can check what was sent.
@@ -189,10 +272,21 @@ class FakeLLM:
         return self.handlers[task](system, user)
 
 
+def get_real_llm():
+    """The real AI for whichever key is set. Raises LLMError if there is none."""
+    if config.PROVIDER == "claude":
+        return ClaudeClient()
+    if config.PROVIDER == "gemini":
+        return GeminiClient()
+    raise LLMError("This needs real model answers, so it needs an API key in code/.env "
+                   "(GEMINI_API_KEY, free from Google AI Studio, or ANTHROPIC_API_KEY). "
+                   "Without a key, only the app's demo mode is available.")
+
+
 def get_llm() -> LLMClient:
     """Pick the right client: demo playback or the real API."""
     if config.DEMO_MODE:
         from app.demo import DemoLLM  # imported here to keep startup light
 
         return DemoLLM()
-    return ClaudeClient()
+    return get_real_llm()

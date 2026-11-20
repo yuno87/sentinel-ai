@@ -1,8 +1,8 @@
-# v3: final version
+# v3
 
-v3 is the final version used by the app. Its five prompts are in `prompts/final/`
-(P1 Analyse, P2 Attacks, P3 Predict, P4 Judge, P5 Harden), generated from
-`code/app/prompts.py`. They are not copied here, so there is only one source.
+v3 is the 5-step pipeline (P1 Analyse, P2 Attacks, P3 Predict, P4 Judge, P5 Harden).
+Only P3 changed between v3 and v4, so only v3's P3 is saved here:
+`P3v3_predict.md`. The other four v3 prompts are identical to `prompts/final/`.
 
 Changes from v2:
 - Added an analysis step (P1) first, so attacks target the bot's actual rules (R1, R2...) and protected assets.
@@ -12,4 +12,5 @@ Changes from v2:
 - The judge must quote exact evidence from the reply, and code checks that the quote is really there.
 - Untrusted text (the prompt under test, attacks, replies) is wrapped in XML tags.
 - Attack IDs (INJ-01...) and the launch call are assigned by code, not the model.
-- Effort per step: `high` for analysis, attacks and hardening; `medium` for predict and judge.
+
+v4 (the final version, `prompts/final/`) rewrote P3 only: see `prompts/ITERATION_LOG.md`.

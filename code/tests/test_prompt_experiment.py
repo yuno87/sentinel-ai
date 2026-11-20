@@ -45,10 +45,24 @@ def test_experiment_runs_and_measures(tmp_path, monkeypatch):
     # v2 and v3 read cleanly and cover all 4 categories.
     assert summary["v2"]["format_ok"] == "3/3" and summary["v2"]["avg_categories_of_4"] == 4
     assert summary["v3"]["avg_evidence_pct"] == 100
+    assert summary["v4"]["format_ok"] == "3/3"
     # Raw answers and a summary table are saved.
     run_dir = next(tmp_path.iterdir())
     assert (run_dir / "summary.md").exists()
     assert (run_dir / "v1_copperleaf_run1.json").exists()
+
+
+def test_v3_uses_the_saved_old_predictor(tmp_path, monkeypatch):
+    """v3 must run with prompts/v3's P3, v4 with the current one, and the app's prompt must be restored."""
+    from app import prompts
+    monkeypatch.setattr(exp, "OUT_DIR", tmp_path)
+    fake = fake_llm()
+    current = prompts.PREDICT_SYSTEM
+    exp.main(["--versions", "v3,v4", "--runs", "1", "--per-category", "1"], llm=fake)
+    predict_systems = [c["system"] for c in fake.calls if c["task"] == "predict"]
+    old = exp.read_prompt_file(exp.ROOT / "prompts" / "v3" / "P3v3_predict.md")["system"]
+    assert old in predict_systems and current in predict_systems and old != current
+    assert prompts.PREDICT_SYSTEM == current
 
 
 def test_tailoring_and_categories():
