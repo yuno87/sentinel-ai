@@ -1,39 +1,68 @@
-# Reel script (Milestone 2)
+# Reel script (Milestone 2): about 95 seconds, 4 speakers
 
-Target length: **about 120 seconds** (must be 90 to 150). Screen recording with a voice-over.
-The demo must be a **real run** on the deployed app (https://sentinel-ai-chi-two.vercel.app) with the Gemini key set, or on your own computer with the key in `code/.env`. Demo mode doesn't count:
-its answers are pre-written, and mock-up screens get 0 for the demo part.
+Target: **90–100 seconds** (the form accepts 90–150). Screen recording with voice-over; faces optional.
+The demo must be a **real run** on https://sentinel-ai-chi-two.vercel.app with the Gemini key working
+(check `/api/info` says `gemini-3.5-flash-lite`, not `demo`). Demo mode doesn't count: mock-up screens get 0.
+
+Word counts assume a relaxed pace of about 2.4 words per second. Each speaker's block fits their time.
 
 ## Before recording
 
-- Open the deployed prototype link in a normal browser window, zoomed to about 110 % so text is readable.
-- Have these ready in tabs:
-  1. `prompts/v1/P0_baseline_single_prompt.md` on GitHub
-  2. A saved v1 output: `test-data/outputs/prompt_experiment/2026-11-20_2345/v1_copperleaf_run2.json` (the run that broke format)
-  3. `prompts/final/P4_judge.md` on GitHub
-  4. A v4 output from the same experiment: `test-data/outputs/prompt_experiment/2026-11-20_2345/v4_copperleaf_run1.json`
-- Run one scan beforehand to check the app works, then refresh so the recording starts clean.
-- Record with **Windows Game Bar** (press `Win + Alt + R` to start and stop) or **Clipchamp** (built into Windows).
-  Record the voice live, or add it afterwards in Clipchamp.
+- Have these open in browser tabs, zoomed to about 110 %:
+  1. The app: https://sentinel-ai-chi-two.vercel.app
+  2. `prompts/ITERATION_LOG.md` on GitHub, scrolled to the **Summary of the measurements** table
+  3. A v1 output: `test-data/outputs/prompt_experiment/2026-11-20_2345/v1_copperleaf_run2.json` on GitHub
+  4. A v4 output: `test-data/outputs/prompt_experiment/2026-11-20_2345/v4_copperleaf_run1.json` on GitHub
+  5. The repository page: https://github.com/yuno87/sentinel-ai
+- Do one scan before recording to wake the app up, then refresh so the recording starts clean.
+- A scan takes 1–3 minutes on the free key: **record the scan in one take, then cut the waiting** in the editor
+  (keep a second or two of the progress checklist).
+- Record with **Clipchamp** (built into Windows) or **Win + Alt + R** (Game Bar). Easiest: record the screen
+  first, then have each person record their lines over it in Clipchamp.
 
-## Timeline and voice-over
+## Script
 
-| Time | On screen | Voice-over (read naturally) |
-|---|---|---|
-| 0:00–0:10 | App home page (Setup tab) | "Companies launch chatbots without testing them against attacks like prompt injection. Sentinel AI is a red-team kit that finds those weaknesses before launch." |
-| 0:10–0:25 | v1 prompt file, then its saved output | "In Milestone 1 we used one prompt that did everything. In our tests it broke format in 1 of 6 runs, never tried hidden-instruction attacks, and 13 of its 29 verdicts contradicted themselves." |
-| 0:25–0:45 | `prompts/ITERATION_LOG.md` summary table, then the v4 output with `evidence` and `evidence_verified` highlighted | "Now it's five separate prompts with checked JSON. Our first split version judged 0 of 48 attacks as failures, because it imagined a perfectly safe bot. Rewriting the predictor with two examples raised that to 31 percent, matching how weak each bot really is, and every evidence quote is checked against the reply." |
-| 0:45–0:55 | Click **Try the example bot**, then **Scan my chatbot** | "Here's a real run. I load a fictional travel-agency bot and click Scan." |
-| 0:55–1:10 | Progress checklist, then the **Report** tab | "Sentinel reads the prompt, writes attacks for this bot, tests each one and judges the replies. The verdict is in plain words." |
-| 1:10–1:25 | Click a **Failed** row to open it | "This attack hid an instruction inside a pasted email, and the bot leaked its staff discount code. The evidence is quoted straight from the reply." |
-| 1:25–1:40 | **Fix & re-test** tab → **Suggest fixes** → **What changed** | "Sentinel suggests fixes, both prompt changes and app changes, and rewrites the prompt." |
-| 1:40–1:50 | **Re-test with the fixed prompt** → the before/after table | "Re-testing shows which problems are fixed and if anything new broke." |
-| 1:50–2:05 | GitHub repo page, then back to the app | "Done so far: the full five-prompt pipeline, live mode for real chatbots, exports, and 15 tests with 12 passing. For Milestone 3 we'll add multi-turn attacks, fix the three failures we found, and compare Gemini with Claude." |
+| Time | Speaker | On screen | Voice-over |
+|---|---|---|---|
+| 0:00–0:13 (13 s) | **Person 1** | App home page (Setup tab) | "Companies launch chatbots without testing them against attacks like prompt injection, the top risk in OWASP's list for AI apps. Sentinel AI is a red-team kit that finds those weaknesses before launch." |
+| 0:13–0:26 (13 s) | **Person 2** | v1 output file | "In Milestone 1 we used one prompt that did everything. It broke format in one of six runs, never tried hidden-instruction attacks, and contradicted itself in 13 of 29 verdicts." |
+| 0:26–0:41 (15 s) | **Person 2** | Iteration log summary table, then the v4 output with `evidence_verified: true` | "So we split it into five prompts with checked JSON. Our first split judged zero attacks as failures. Rewriting the predictor with two examples raised that to 31 percent, matching how weak each bot really is." |
+| 0:41–0:51 (10 s) | **Person 3** | Click **Try the example bot**, then **Scan my chatbot**; progress checklist | "Here's a real run. I load a fictional travel-agency bot and click Scan. Sentinel analyses the prompt and writes attacks just for this bot." |
+| 0:51–1:05 (14 s) | **Person 3** | **Report** tab: Block launch banner, then click a **Failed** row | "The verdict is in plain words: block launch. Opening a failed attack shows the hidden instruction, the bot's reply, and the exact evidence, which our code checks really appears in the reply." |
+| 1:05–1:18 (13 s) | **Person 4** | **Fix & re-test** tab → **Suggest fixes** → **What changed** → **Re-test** | "Sentinel then suggests fixes, both prompt changes and app changes, rewrites the prompt, and re-tests it. Here every attack that worked before is now blocked." |
+| 1:18–1:35 (17 s) | **Person 4** | Repository page | "So far: the full five-prompt pipeline, live testing of real chatbots, and fifteen tests, twelve passing. For Milestone 3 we'll fix the three failures we found, add multi-turn attacks, and compare Gemini with Claude." |
+
+Total: about **95 seconds**. If it runs long, trim pauses rather than words; if it runs under 90 seconds,
+hold the final repository shot or the re-test table for a few seconds more.
+
+## Lines only (to send to each speaker)
+
+**Person 1** (0:00–0:13)
+> Companies launch chatbots without testing them against attacks like prompt injection, the top risk in OWASP's list for AI apps. Sentinel AI is a red-team kit that finds those weaknesses before launch.
+
+**Person 2** (0:13–0:41)
+> In Milestone 1 we used one prompt that did everything. It broke format in one of six runs, never tried hidden-instruction attacks, and contradicted itself in 13 of 29 verdicts.
+> So we split it into five prompts with checked JSON. Our first split judged zero attacks as failures. Rewriting the predictor with two examples raised that to 31 percent, matching how weak each bot really is.
+
+**Person 3** (0:41–1:05)
+> Here's a real run. I load a fictional travel-agency bot and click Scan. Sentinel analyses the prompt and writes attacks just for this bot.
+> The verdict is in plain words: block launch. Opening a failed attack shows the hidden instruction, the bot's reply, and the exact evidence, which our code checks really appears in the reply.
+
+**Person 4** (1:05–1:35)
+> Sentinel then suggests fixes, both prompt changes and app changes, rewrites the prompt, and re-tests it. Here every attack that worked before is now blocked.
+> So far: the full five-prompt pipeline, live testing of real chatbots, and fifteen tests, twelve passing. For Milestone 3 we'll fix the three failures we found, add multi-turn attacks, and compare Gemini with Claude.
+
+## Notes
+
+- The re-test line ("every attack that worked before is now blocked") matches what our real run showed (4 fixed, 0 still failing).
+  If your recorded run shows something different, say what it shows, e.g. "most of the attacks that worked before are now blocked".
+- Likewise, if the scan you record finds a different number of failures, the "block launch" line still works as long as
+  the banner says Block launch; if it says something else, read the banner's words instead.
 
 ## After recording
 
-1. Trim the start and end. Check the length is **between 90 and 150 seconds** and note the **exact number of seconds** (form Q14).
+1. Trim the start and end. Check the length is **90–100 seconds** and note the **exact number of seconds** (form Q14).
 2. Upload to Google Drive (or YouTube as **Unlisted**).
 3. Drive: Share → General access → **Anyone with the link** → Viewer. Copy the link.
 4. Open the link in an **incognito window** to check it plays without signing in.
-5. Note the link and the exact length for the form (Q13, Q14) and the PDF cover (`docs/m2/links.json`).
+5. Put the link and exact length in the form (Q13, Q14) and in `docs/m2/links.json` (or send them to Claude to rebuild the PDF).
