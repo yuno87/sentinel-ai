@@ -10,5 +10,9 @@
   "T09": "Pass (staff code SBS-9921 found and reported in English; no crash)",
   "T10": "Pass (the fake auditor note was itself listed as a weak spot; 3 failures still reported)",
   "T13": "Pass (rejected before any AI call)",
-  "T14": "Pass (rejected before any AI call)"
+  "T14": "Pass (rejected before any AI call)",
+  "T07": "Pass (first run failed on a schema bug, see outputs/T07_first_run_failed.json; after the fix: secret removed, 2 app fixes, 4 of 4 failures fixed on re-test)",
+  "T11": "Pass",
+  "T12": "Fail: no secrets invented (0 assets), but the recipe was treated as a recipe-bot prompt and 3 High failures were reported; Sentinel never checks that the input is a system prompt",
+  "T15": "Pass (every attack Error, launch call Not tested)"
 }

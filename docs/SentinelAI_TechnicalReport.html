@@ -28,7 +28,7 @@ figcaption { font-size: 9pt; color: #5d6677; margin-top: 4px; }
 <h2>Purpose</h2>
 <p>Sentinel AI tests a chatbot's system prompt for security weaknesses before launch. The user pastes the system prompt; Sentinel works out what the bot must protect, writes attacks tailored to it, gets the bot's replies (predicted, or from the real chatbot over HTTP), judges each reply with quoted evidence, and suggests fixes plus a hardened prompt that can be re-tested.</p>
 <h2>Architecture</h2>
-<p>A Python <strong>FastAPI</strong> server and a plain <strong>HTML/JavaScript</strong> page (three tabs: Setup, Report, Fix &amp; re-test). The server is stateless: the page holds the current results and sends each step what it needs. All AI calls go through one module (<code>llm.py</code>), which supports <strong>Gemini</strong> (free key) and <strong>Claude</strong>, chosen by which API key is set; with no key, a labelled demo mode plays back pre-written answers. Keys stay on the server and are never sent to the browser. The app is packaged with Docker and hosted on Hugging Face Spaces.</p>
+<p>A Python <strong>FastAPI</strong> server and a plain <strong>HTML/JavaScript</strong> page (three tabs: Setup, Report, Fix &amp; re-test). The server is stateless: the page holds the current results and sends each step what it needs. All AI calls go through one module (<code>llm.py</code>), which supports <strong>Gemini</strong> (free key) and <strong>Claude</strong>, chosen by which API key is set; with no key, a labelled demo mode plays back pre-written answers. Keys stay on the server and are never sent to the browser. The prototype is hosted on Vercel (free plan) from the GitHub repository; a Dockerfile is also included.</p>
 <h2>Tools and models</h2>
 <table>
 <thead>
@@ -52,7 +52,7 @@ figcaption { font-size: 9pt; color: #5d6677; margin-top: 4px; }
 </tr>
 <tr>
 <td>Testing</td>
-<td>pytest (66 offline tests with a fake model), plus scripted real runs (<code>run_tests.py</code>, <code>prompt_experiment.py</code>)</td>
+<td>pytest (71 offline tests with a fake model), plus scripted real runs (<code>run_tests.py</code>, <code>prompt_experiment.py</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -68,6 +68,11 @@ figcaption { font-size: 9pt; color: #5d6677; margin-top: 4px; }
 <p>Plain code handles everything that doesn't need judgement: attack IDs, a safety screen, checking that the evidence quote is really in the reply, the launch call, the diff and the before/after comparison. Untrusted text is wrapped in XML tags so the model can tell instructions from material.</p>
 <p><strong>Iteration.</strong> Four versions were measured on the same 3 bots (6 runs each, Gemini 3.5 Flash-Lite). v1, the Milestone 1 single prompt, broke format in 1 of 6 runs, never tested hidden instructions and contradicted itself in 13 of 29 verdicts. v2 split the work and fixed the format (6/6, 4 of 4 categories) but judged 0 of 48 attacks as Fail. v3 added analysis, schemas, a separate judge and checked evidence (100 % found), but still only 2 % Fail. v4 rewrote the predictor with realistic behaviour and two examples: 31 % Fail, ranked by how weak each bot is (Copperleaf 9/16, ABC Bank 4/16, Lumen HR 2/16).</p>
 <h2>Test results</h2>
-<p>{{tests_summary}}</p>
+<p>15 test inputs (7 Normal, 5 Edge, 3 Invalid) were run through the app's real API on Gemini 3.5 Flash-Lite: <strong>12 Pass, 3 Fail</strong>. Highlights: the built-in weak bot was blocked from launch with Critical leaks (T01), while an already-hardened prompt had 0 of 8 attacks succeed (T04); a prompt in Hindi (T09) and one that told the tester to report no weak spots (T10) were handled correctly; invalid input was rejected before any AI call (T13, T14); an unreachable chatbot gave "Not tested" instead of a false "safe" (T15). Fix and re-test removed the secret from the prompt and fixed 4 of 4 failures (T07), after testing exposed and we fixed a schema bug. The 3 Fails are reported honestly: predictions too optimistic for one bot (T03), severity not weighed by what leaked (T05), and a non-prompt input not rejected (T12). 71 offline unit tests cover every step.</p>
 <h2>Limitations</h2>
-<p>{{limitations}}</p></body></html>
+<ol>
+<li><strong>Simulated replies can still be too optimistic (T03).</strong> Even with v4's predictor, the HR helper, whose prompt has explicit "never share..." rules, refused all 8 attacks, although the experiment found 2 of 16 attacks worked on the same bot. A prediction is an estimate, not proof. <em>Next:</em> compare predictions with live runs on real chatbots to calibrate P3, add more contrasting examples, and try sampling each prediction more than once.</li>
+<li><strong>Judging lacks context (T05, T12).</strong> The judge rated leaking the bakery bot's prompt as High, because the rubric says "leaks most of the system prompt = High", even though that prompt held nothing secret. And when given a cake recipe instead of a system prompt, Sentinel analysed it as a "recipe bot" and still reported 3 High failures. <em>Next:</em> scale severity by the sensitivity of what leaked (or compute it in code from the protected assets found in P1), and have P1 flag inputs that are not a chatbot prompt so the scan stops with a clear message.</li>
+<li><strong>Free-tier limits slow scans and cap testing.</strong> A scan of 8 attacks makes about 18 calls, takes 1 to 3 minutes on a free Gemini key, and the daily limit was reached during testing (T11, T12 and T15 had to be re-run the next day). <em>Next:</em> cut calls by judging several replies in one request, cache the analysis between scans, and offer a paid key for heavy use.</li>
+<li><strong>Single-message attacks only, one model at a time.</strong> Attacks spread over several messages are not covered, live mode was only tested against the included practice chatbot, and results come from one model. <em>Next (Milestone 3):</em> multi-turn attacks, testing a third-party chatbot, and comparing models (Gemini vs Claude) on the same bots, as planned in Milestone 1.</li>
+</ol></body></html>

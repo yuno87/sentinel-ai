@@ -17,7 +17,7 @@ A Python **FastAPI** server and a plain **HTML/JavaScript** page (three tabs: Se
 | Model | Google **Gemini 3.5 Flash-Lite** via the `google-genai` SDK (free AI Studio key); Anthropic Claude Opus 5.5 also supported |
 | Output control | Structured JSON output: each step sends a JSON Schema (`response_json_schema`) and the answer is validated with **Pydantic**; one retry if invalid |
 | Server and data | FastAPI, Pydantic, httpx (live mode), python-dotenv |
-| Testing | pytest (66 offline tests with a fake model), plus scripted real runs (`run_tests.py`, `prompt_experiment.py`) |
+| Testing | pytest (71 offline tests with a fake model), plus scripted real runs (`run_tests.py`, `prompt_experiment.py`) |
 
 ## Prompt design
 
