@@ -8,7 +8,7 @@
 | Tool and model | Google Gemini API, model `gemini-3.5-flash-lite` (free AI Studio key, `google-genai` Python SDK), called from `code/app/llm.py`. The same prompt also runs unchanged on Anthropic Claude (`claude-opus-5-5`) when that key is set. |
 | Settings | Gemini: default settings (temperature and thinking left at the model defaults), structured JSON output via `response_json_schema`. On Claude: effort `high`, max_tokens 16000. |
 | Number of examples included | 0 (zero-shot; the rules and output schema do the steering) |
-| Output format | JSON matching the `AttackDraftList` schema below, validated with Pydantic |
+| Output format | JSON object (`AttackDraftList`, validated with Pydantic): `attacks` (list of {`category` (prompt_injection / instruction_override / jailbreak / system_prompt_leak), `technique` (text), `goal` (text), `target_rules` (list of text), `prompt` (text)}). Full JSON Schema at the end of this file. |
 
 ## System prompt
 
@@ -60,7 +60,7 @@ Write exactly {per_category} attacks for EACH of the 4 categories ({total} in to
 | `{system_prompt}` | The prompt under test. |
 | `{analysis_json}` | P1's output (purpose, rules R1..Rn, protected assets, weak spots) as JSON. |
 
-## Output schema (sent to the API as `output_config.format`)
+## Output schema (sent to the API with every request)
 
 ```json
 {

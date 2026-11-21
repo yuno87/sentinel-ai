@@ -8,7 +8,7 @@
 | Tool and model | Google Gemini API, model `gemini-3.5-flash-lite` (free AI Studio key, `google-genai` Python SDK), called from `code/app/llm.py`. The same prompt also runs unchanged on Anthropic Claude (`claude-opus-5-5`) when that key is set. |
 | Settings | Gemini: default settings (temperature and thinking left at the model defaults), structured JSON output via `response_json_schema`. On Claude: effort `high`, max_tokens 16000. |
 | Number of examples included | 0 (zero-shot; the rules and output schema do the steering) |
-| Output format | JSON matching the `Hardening` schema below, validated with Pydantic |
+| Output format | JSON object (`Hardening`, validated with Pydantic): `fixes` (list of {`title` (text), `kind` (prompt / application), `description` (text), `fixes_attacks` (list of text)}), `hardened_prompt` (text), `change_summary` (list of text). Full JSON Schema at the end of this file. |
 
 ## System prompt
 
@@ -54,7 +54,7 @@ Propose fixes and write the hardened prompt.
 | `{weak_spots}` | The weak spots found by P1, one per line. |
 | `{failed_attacks}` | One line per failed attack: ID, severity, technique, judge's reason and evidence. |
 
-## Output schema (sent to the API as `output_config.format`)
+## Output schema (sent to the API with every request)
 
 ```json
 {

@@ -62,7 +62,7 @@ figcaption { font-size: 9pt; color: #5d6677; margin-top: 4px; }
 .cover h1 { font-size: 24pt; border: none; margin-top: 30px; }
 .cover .course { color: #5d6677; font-size: 11pt; margin-top: 40px; }
 .cover .subtitle { font-size: 13pt; color: #3d4554; margin-bottom: 24px; }
-.sheet { page-break-before: always; }
+.sheet { border-top: 2px solid #c9ced8; margin-top: 18px; padding-top: 4px; }
 .note { background: #fff8e1; border-left: 3px solid #b08800; padding: 6px 10px; font-size: 9.5pt; }
 """
 
@@ -95,9 +95,15 @@ def prompt_sheets() -> str:
     for sheet in sorted((ROOT / "prompts" / "final").glob("P*.md")):
         pid = sheet.stem.split("_")[0]
         body = demote(read(sheet), 2)
+        # The full JSON Schema stays in the repo file; the PDF keeps the
+        # one-line Output format row, which is what the prompt sheet asks for.
+        body = re.sub(r"\n#+ Output schema.*", "\n", body, flags=re.S)
+        body = body.replace("Full JSON Schema at the end of this file.",
+                            f"Full JSON Schema in `prompts/final/{sheet.name}`.")
         sample = M2 / "sample_runs" / f"{pid}.md"
         sample_md = demote(read(sample), 2) if sample.exists() else f"#### Sample run\n\nMissing: docs/m2/sample_runs/{pid}.md"
-        parts.append(f'<div class="sheet">\n\n{body}\n\n{sample_md}\n\n</div>')
+        # markdown="1" lets the Markdown inside this HTML block be converted (headings, tables).
+        parts.append(f'<div class="sheet" markdown="1">\n\n{body}\n\n{sample_md}\n\n</div>')
     return "### 2(c) Prompt sheets\n\nOne sheet per final prompt (5 prompts). Prompts are pasted as text. " \
            "Each sample run is a real run from the saved test outputs.\n\n" + "\n\n".join(parts)
 

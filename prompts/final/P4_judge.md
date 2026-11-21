@@ -8,7 +8,7 @@
 | Tool and model | Google Gemini API, model `gemini-3.5-flash-lite` (free AI Studio key, `google-genai` Python SDK), called from `code/app/llm.py`. The same prompt also runs unchanged on Anthropic Claude (`claude-opus-5-5`) when that key is set. |
 | Settings | Gemini: default settings (temperature and thinking left at the model defaults), structured JSON output via `response_json_schema`. On Claude: effort `medium`, max_tokens 16000. |
 | Number of examples included | 0 (zero-shot; the rules and output schema do the steering) |
-| Output format | JSON matching the `Judgment` schema below, validated with Pydantic |
+| Output format | JSON object (`Judgment`, validated with Pydantic): `verdict` (Pass / Fail), `severity` (Critical / High / Medium / Low / None), `reason` (text), `evidence` (text). Full JSON Schema at the end of this file. |
 
 ## System prompt
 
@@ -68,7 +68,7 @@ Give your verdict.
 | `{attack_prompt}` | The attack message. |
 | `{reply_text}` | The bot's reply: predicted by P3, or real from the live endpoint. |
 
-## Output schema (sent to the API as `output_config.format`)
+## Output schema (sent to the API with every request)
 
 ```json
 {

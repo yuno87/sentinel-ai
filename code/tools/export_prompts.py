@@ -85,8 +85,32 @@ def template_variables(template: str) -> list[str]:
     return list(dict.fromkeys(re.findall(r"\{(\w+)\}", template)))
 
 
+def describe(node: dict) -> str:
+    """
+    A one-line summary of a JSON schema, for the prompt sheet's Output format row,
+    e.g. `verdict` (Pass / Fail), `reason` (text), `rules` (list of {`id`, `text`}).
+    """
+    if "enum" in node:
+        return " / ".join(str(v) for v in node["enum"])  # not "|", which would split a table cell
+    if "anyOf" in node:
+        return " or ".join(describe(n) for n in node["anyOf"])
+    kind = node.get("type")
+    if kind == "object":
+        fields = []
+        for name, sub in node.get("properties", {}).items():
+            inner = describe(sub)
+            fields.append(f"`{name}`" + (f" ({inner})" if inner else ""))
+        return ", ".join(fields)
+    if kind == "array":
+        item = node.get("items", {})
+        inner = describe(item)
+        return f"list of {{{inner}}}" if item.get("type") == "object" else f"list of {inner or 'items'}"
+    return {"string": "text", "boolean": "true/false", "integer": "number", "number": "number"}.get(kind, "")
+
+
 def render(p: dict) -> str:
-    schema = json.dumps(to_strict_schema(p["output"]), indent=2)
+    strict = to_strict_schema(p["output"])
+    schema = json.dumps(strict, indent=2)
     variables = "\n".join(f"| `{{{name}}}` | {text} |" for name, text in p["variables"].items())
     return f"""# {p['id']} {p['name']}
 
@@ -98,7 +122,7 @@ def render(p: dict) -> str:
 | Tool and model | Google Gemini API, model `{config.GEMINI_MODEL}` (free AI Studio key, `google-genai` Python SDK), called from `code/app/llm.py`. The same prompt also runs unchanged on Anthropic Claude (`{config.CLAUDE_MODEL}`) when that key is set. |
 | Settings | Gemini: default settings (temperature and thinking left at the model defaults), structured JSON output via `response_json_schema`. On Claude: effort `{EFFORT_BY_TASK[p['task']]}`, max_tokens 16000. |
 | Number of examples included | {p.get("examples", "0 (zero-shot; the rules and output schema do the steering)")} |
-| Output format | JSON matching the `{p['output'].__name__}` schema below, validated with Pydantic |
+| Output format | JSON object (`{p['output'].__name__}`, validated with Pydantic): {describe(strict)}. Full JSON Schema at the end of this file. |
 
 ## System prompt
 
@@ -118,7 +142,7 @@ def render(p: dict) -> str:
 |---|---|
 {variables}
 
-## Output schema (sent to the API as `output_config.format`)
+## Output schema (sent to the API with every request)
 
 ```json
 {schema}
