@@ -8,7 +8,7 @@ Copy these into the Microsoft Form in one sitting. Every number matches the Mile
 | 2 | Team name | Sentinel AI |
 | 3 | Project title | Sentinel AI: A Prompt Safety Tester for Chatbots |
 | 4–5 | Team leader name and enrollment no. | Ayanna Tyagi, S24CSEU0125 |
-| 6 | Group (batch) | **Check:** you gave "Batch 51"; the form's example format is like "B13-24" (your Team ID contains B49-24) |
+| 6 | Group (batch) | Batch 51 |
 | 7 | Enrollment numbers (one per line) | S24CSEU0125<br>S24CSEU2439<br>S24CSEU1939<br>S24CSEU1932 |
 | 8 | Project type (max 2) | Custom web app; Prompt workflow / multi-step prompting (pick the closest options the form offers) |
 | 9 | Main AI tool and model | Gemini 3.5 Flash-Lite via the Gemini API (google-genai Python SDK), in a custom FastAPI web app |
