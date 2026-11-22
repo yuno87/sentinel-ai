@@ -24,7 +24,7 @@ Copy these into the Microsoft Form in one sitting. Every number matches the Mile
 | 19 | Prototype status | **All modules working** (all 10 modules in the status table are Working; T07 confirmed the fix step after the bug fix) |
 | 20 | Names of working modules (one per line) | Prompt analysis (P1)<br>Attack generation (P2)<br>Simulated replies (P3)<br>Live chatbot testing<br>Judging with evidence (P4)<br>Launch call and report<br>Fixes and hardened prompt (P5)<br>Re-test comparison<br>Markdown and CSV export<br>Demo mode |
 | 21 | Upload Milestone 2 PDF | `docs/M2_PE-B49-24_SentinelAI.pdf` |
-| 22 | Main task of each member | From your contribution document. It must match Section 7 of the PDF exactly. |
+| 22 | Main task of each member | S24CSEU0125 – Ayanna Tyagi – Team leader; prompt design and iteration<br>S24CSEU2439 – Atharv Arora – Testing<br>S24CSEU1939 – Karan Singh Saggu – Prototype and demo<br>S24CSEU1932 – Jatin Khanchi – Documentation review |
 | 23 | Anything the evaluator should know | The prototype runs on a free Gemini key, so a scan takes 1 to 3 minutes and Google's daily free limit can be reached; if a scan says the limit was reached, please try again later. Click "Try the example bot", then "Scan my chatbot". Full instructions to run locally are in the README. |
 | 24 | Confirmation | Tick only after all members have agreed to the contribution table |
 
