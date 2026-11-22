@@ -8,7 +8,7 @@ SCSE4041 Prompt Engineering, Mini Project · Team **Sentinel AI** (Team ID PE-B4
 |---|---|
 | Prototype | <https://sentinel-ai-chi-two.vercel.app> |
 | Repository | <https://github.com/yuno87/sentinel-ai> |
-| Reel | _link added after recording_ |
+| Reel | <https://youtu.be/27-Gep_772g> (107 seconds) |
 
 ## Team
 

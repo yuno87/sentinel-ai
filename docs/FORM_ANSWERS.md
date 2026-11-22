@@ -1,7 +1,6 @@
 # Milestone 2 form: answers sheet
 
 Copy these into the Microsoft Form in one sitting. Every number matches the Milestone 2 PDF.
-Items marked **TO DO** are filled in when the last steps are done.
 
 | Q | Question | Answer |
 |---|---|---|
@@ -16,8 +15,8 @@ Items marked **TO DO** are filled in when the last steps are done.
 | 10 | Number of prompts | **5** (P1 Analyse, P2 Attacks, P3 Predict, P4 Judge, P5 Harden) |
 | 11 | Prototype link | https://sentinel-ai-chi-two.vercel.app |
 | 12 | Repository link | https://github.com/yuno87/sentinel-ai |
-| 13 | Reel link | **TO DO** |
-| 14 | Reel length (seconds) | **TO DO** (must be 90–150) |
+| 13 | Reel link | https://youtu.be/27-Gep_772g |
+| 14 | Reel length (seconds) | 107 |
 | 15 | Supporting document type | Technical report |
 | 16 | Upload supporting document | `docs/SentinelAI_TechnicalReport.pdf` |
 | 17 | Number of test inputs | **15** |
