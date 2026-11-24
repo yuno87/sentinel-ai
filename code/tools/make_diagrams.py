@@ -107,8 +107,9 @@ def prompt_workflow():
     s.path("M 610 536 L 700 536 L 700 470", dashed=True)
     s.box(620, 430, 200, 40, ["P5 Harden", "fixes + new prompt"], "llm")
     # Re-test: the SAME attacks are run again (no new P2 call) with the hardened prompt.
-    s.path("M 720 430 L 720 290 L 582 290", "re-test: same attacks,", 790, 322, dashed=True)
-    s.text(790, 337, "hardened prompt", size=11.5)
+    # Routed round the right of "Your real chatbot" so the line doesn't cross it.
+    s.path("M 820 450 L 842 450 L 842 290 L 582 290", dashed=True)
+    s.text(712, 282, "re-test: same attacks, hardened prompt", size=11.5)
     s.legend(572)
     s.save("prompt_workflow.svg")
 
