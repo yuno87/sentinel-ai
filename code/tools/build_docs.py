@@ -46,6 +46,7 @@ h1 { font-size: 18pt; margin: 0 0 10px; border-bottom: 2px solid #3b5bdb; paddin
 h1.section { page-break-before: always; }
 h2 { font-size: 13.5pt; margin: 18px 0 6px; color: #23305f; }
 h3 { font-size: 11.5pt; margin: 14px 0 4px; }
+h1, h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
 p, li { margin: 4px 0; }
 table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; font-size: 9pt; page-break-inside: auto; }
 tr { page-break-inside: avoid; }
